@@ -1,19 +1,26 @@
 <template>
   <div class="container-fluid h-100">
-    <div class="row h-100">
+    <div class="row contenido_chat" style="overflow-y: hidden;">
       <!-- Lista de contactos (Sidebar) -->
-      <div class="col-4 col-md-3 bg-light border-end p-0" style="background-color: #d3e5ff !important;">
+      <div class="col-4 col-md-3 bg-light p-0" style="background-color: #fdfdfd !important;">
         <!-- Barra de búsqueda y nuevo chat -->
         <div class="p-3 border-bottom">
           <div class="d-flex gap-2 mb-3 justify-content-end">
-            <button class="btn btn-success" @click="openNewChat">
+            <div class="d-flex flex-column w-100">
+              <h5 class="mb-0">Bienvenido</h5>
+              <small class="text-muted">{{ yo?.name }}</small>
+            </div>
+            <button class="btn btn-outline-success rounded-circle" @click="openNewChat">
               <i class="fa-solid fa-comment-medical"></i>
             </button>
-            <button class="btn btn-secondary" @click="openProfile">
+            <button class="btn btn-outline-primary rounded-circle" @click="openBroadcastModal">
+              <i class="bi bi-broadcast"></i>
+            </button>
+            <button class="btn btn-outline-secondary rounded-circle" @click="openProfile">
               <i class="bi bi-gear-fill"></i>
             </button>
-            <button class="btn btn-danger" @click="logout">
-              <i class="bi bi-box-arrow-right me-2"></i>Salir
+            <button class="btn btn-outline-danger rounded-circle" @click="logout">
+              <i class="bi bi-box-arrow-right"></i>
             </button>
           </div>
           <div class="input-group">
@@ -25,20 +32,21 @@
               class="form-control border-start-0" 
               placeholder="Buscar contactos..."
               v-model="searchQuery"
+              @keyup="buscarContactosChats"
             >
           </div>
         </div>
 
         <!-- Lista de contactos -->
-        <div class="contacts-list overflow-auto" style="height: calc(100vh - 130px);">
+        <div class="contacts-list overflow-auto" style="height: calc(100vh - 180px);">
           <div 
-            v-for="chat in chats" 
+            v-for="chat in chatsFiltrados" 
             :key="chat.id"
-            class="contact-item p-3 border-bottom cursor-pointer"
+            class="contact-item p-2  cursor-pointer"
             :class="{'active': selectedChat?.id === chat.id}"
             @click="seleccionarChat(chat)"
           >
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center elemento">
               <div class="position-relative">
                 <img 
                   :src="'/images/'+chat.avatar+'.png'" 
@@ -60,13 +68,13 @@
                 
                 <h6 class="mb-0">
                   {{ chat.nombre }} 
-                  <span :class="chat.online ? 'badge bg-success' : 'badge bg-primary'">
+                  <span :class="chat.online ? 'badge bg-success text-black' : 'badge bg-warning text-black'">
                     {{ chat.online ? 'En línea' : 'Activo ' + chat.last_seen }}
                   </span>
                 </h6>
                 <small class="text-muted">{{ chat.empresa }}</small>
-                <hr>
-                <small class="text-muted">
+                <br>
+                <small class="text-muted" style="font-size: 10px;">
                   Creado el {{ chat.fecha_chat }} a las {{ chat.hora_chat }} 
                 </small>
               </div>
@@ -80,7 +88,7 @@
       <div class="col-8 col-md-9 p-0 h-100">
         <template v-if="selectedChat">
           <!-- Encabezado del chat -->
-          <div class="chat-header p-3 border-bottom bg-white">
+          <div class="chat-header p-3 border-bottom bg-white" style="background-color: #e1e1e1 !important;">
             <div class="d-flex align-items-center">
               <img 
                 :src="'/images/'+selectedChat.avatar+'.png'" 
@@ -105,8 +113,8 @@
 
           <!-- Área de mensajes -->
           <div 
-            class="chat-messages p-3 overflow-auto bg-light"
-            style="height: calc(100vh - 140px);"
+            class="chat-messages p-3 overflow-auto"
+            style="height: calc(100vh - 186px);"
             ref="messageContainer"
           >
             <div 
@@ -116,7 +124,7 @@
               :class="{'text-end': message.is_mine}"
             >
               <div 
-                class="message d-inline-block p-3 shadow-sm"
+                class="message d-inline-block p-3"
                 :class="[
                   message.is_mine ? 'message-mine bg-primary text-white' : 'message-other bg-white',
                   {'rounded-bottom-end-0': message.is_mine},
@@ -153,12 +161,13 @@
           </div>
 
           <!-- Área de entrada de mensaje -->
-          <div class="chat-input p-3 border-top bg-white">
+          <div class="chat-input p-3" style="background-color: #f1ede6 !important;">
             <div class="input-group">
-              <button class="btn btn-light" @click="openFileExplorer">
-                <i class="bi bi-plus-lg"></i>
+              <button style="padding: 0px !important; border-color: #f1ede6 !important; background-color: #f1ede6 !important;" class="btn btn-light" @click="openFileExplorer">
+                <i class="bi bi-plus-lg" style="color: grey; font-size: 1.5rem;"></i>
               </button>
-              <input 
+              <input
+                style="border: 1px solid #c3c3c3;"
                 type="text" 
                 class="form-control mx-2" 
                 placeholder="Escribe un mensaje..."
@@ -245,12 +254,12 @@
                   :alt="user.name"
                 >
                 <div class="ms-3">
-                  <h6 class="mb-0">{{ user.name }} <span :class="user.online ? 'badge bg-success' : 'badge bg-primary'">{{ user.online ? 'En línea' : 'Activo ' + user.lastSeen }}</span></h6>
+                  <h6 class="mb-0">{{ user.name }} <span :class="user.online ? 'badge bg-success text-black' : 'badge bg-warning text-black'">{{ user.online ? 'En línea' : 'Activo ' + user.lastSeen }}</span></h6>
                   <small class="text-muted">
                     {{ user.empresa }}
                   </small>
                   <br>
-                 
+                
                 </div>
                 <div class="ms-auto">
                   <i class="bi bi-plus-circle text-primary"></i>
@@ -280,68 +289,7 @@
             ></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="updateProfile">
-              <div class="text-center mb-4">
-                <img 
-                  :src="'/images/'+yo?.avatar+'.png'" 
-                  class="rounded-circle mb-3"
-                  width="100" 
-                  height="100"
-                  :alt="yo?.name"
-                >
-                <div class="mb-3">
-                  <select class="form-select" v-model="profileData.avatar">
-                    <option value="avatar1"></option>
-                    <option value="avatar2"></option>
-                    <option value="avatar3"></option>
-                    <option value="avatar4"></option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Nombre:</label>
-                <input 
-                  type="text" 
-                  class="form-control"
-                  v-model="profileData.name"
-                  required
-                >
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Email:</label>
-                <input 
-                  type="email" 
-                  class="form-control"
-                  v-model="profileData.email"
-                  required
-                >
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Empresa:</label>
-                <select class="form-select" v-model="profileData.empresa">
-                  <option v-for="empresa in empresas" :key="empresa" :value="empresa">{{ empresa }}</option>
-                </select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Contraseña:</label>
-                <input 
-                  type="password" 
-                  class="form-control"
-                  v-model="profileData.password"
-                  placeholder="Dejar en blanco para mantener la actual"
-                >
-              </div>
-
-              <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">
-                  Actualizar Perfil
-                </button>
-              </div>
-            </form>
+            <miPerfil />
           </div>
         </div>
       </div>
@@ -407,6 +355,119 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de difusión -->
+    <div 
+      class="modal fade" 
+      id="broadcastModal" 
+      tabindex="-1" 
+      ref="broadcastModal"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Mensaje de Difusión</h5>
+            <button 
+              type="button" 
+              class="btn-close" 
+              @click="closeBroadcastModal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <!-- Barra de búsqueda -->
+            <div class="input-group mb-3">
+              <span class="input-group-text bg-white">
+                <i class="bi bi-search"></i>
+              </span>
+              <input 
+                type="text" 
+                class="form-control" 
+                placeholder="Buscar usuarios..."
+                v-model="broadcastSearchQuery"
+                @keyup="searchUsersDifusion"
+              >
+            </div>
+
+            <!-- Lista de usuarios seleccionables -->
+            <div class="user-list mb-3" style="max-height: 200px; overflow-y: auto;">
+              <div 
+                v-for="user in availableUsersDifusion" 
+                :key="user.id"
+                class="d-flex align-items-center p-2 rounded cursor-pointer user-item"
+              >
+                <div class="form-check">
+                  <input 
+                    type="checkbox" 
+                    class="form-check-input" 
+                    :value="user.id"
+                    v-model="selectedUsers"
+                  >
+                </div>
+                <img 
+                  :src="'/images/'+user.avatar+'.png'" 
+                  class="rounded-circle ms-2"
+                  width="40" 
+                  height="40"
+                  :alt="user.name"
+                >
+                <div class="ms-3">
+                  <h6 class="mb-0">{{ user.name }}</h6>
+                  <small class="text-muted">{{ user.empresa }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Área de mensaje -->
+            <div class="mb-3">
+              <textarea 
+                class="form-control" 
+                v-model="broadcastMessage" 
+                rows="3" 
+                placeholder="Escribe tu mensaje..."
+              ></textarea>
+            </div>
+
+            <!-- Área de archivo -->
+            <div class="mb-3">
+              <button class="btn btn-outline-secondary" @click="openBroadcastFileExplorer">
+                <i class="bi bi-paperclip"></i> Adjuntar archivo
+              </button>
+              <span v-if="broadcastFile" class="ms-2">
+                {{ broadcastFile.name }}
+                <button class="btn btn-sm btn-link text-danger" @click="removeBroadcastFile">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button 
+              type="button" 
+              class="btn btn-danger" 
+              @click="closeBroadcastModal"
+            >
+              Cancelar <i class="bi bi-x"></i>
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-success" 
+              @click="sendBroadcastMessage"
+              :disabled="!selectedUsers.length || !broadcastMessage"
+            >
+              Enviar mensaje <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input file oculto para archivos de difusión -->
+    <input 
+      type="file" 
+      ref="broadcastFileInput" 
+      class="d-none" 
+      @change="handleBroadcastFileSelected"
+    >
   </div>
 </template>
 
@@ -414,8 +475,12 @@
 import * as bootstrap from 'bootstrap'
 import { userService, chatService } from '../services/api' 
 import Swal from 'sweetalert2'
+import miPerfil from './miPerfil.vue'
 
 export default {
+  components: {
+    miPerfil
+  },
   name: 'Chat',
   data() {
     return {
@@ -423,10 +488,12 @@ export default {
       selectedChat: null,
       newMessage: '',
       chats: [],
+      chatsFiltrados: [],
       messages: [
        
       ],
       newChatSearchQuery: '',
+      users: [],
       availableUsers: [],
       modal: null,
       yo: null,
@@ -448,7 +515,13 @@ export default {
       archivo: null,
       selectedFile: null,
       fileModal: null,
-      updateInterval: null
+      updateInterval: null,
+      broadcastModal: null,
+      broadcastMessage: '',
+      selectedUsers: [],
+      broadcastFile: null,
+      broadcastSearchQuery: '',
+      availableUsersDifusion: [],
     }
   },
   methods: {
@@ -473,9 +546,10 @@ export default {
     },
     async loadUsers() {
       try {
-        const users = await userService.getUsers();
-        this.availableUsers = users.filter(user => user.id != this.yo.id);
-        console.log(this.availableUsers);
+        this.users = await userService.getUsers();
+        this.users = this.users.filter(user => user.id != this.yo.id);
+        this.availableUsers = this.users.filter(user => user.id != this.yo.id);
+        this.availableUsersDifusion = this.users.filter(user => user.id != this.yo.id);
       } catch (error) {
         console.error('Error al cargar usuarios:', error);
       }
@@ -484,30 +558,28 @@ export default {
       try {
         const chats = await chatService.obtenerChatsUsuario(this.yo.id);
         this.chats = chats.chats;
+        this.chatsFiltrados = chats.chats;
       } catch (error) {
         console.error('Error al cargar chats:', error);
       }
     },
-    seleccionarChat(chat) {
+    async seleccionarChat(chat) {
       this.selectedChat = chat;
       localStorage.setItem('id_chat', chat.id);
       localStorage.setItem('id_mio', this.yo.id);
+      
+      await this.loadMessages(chat.id);
+      await this.loadChats();
+
       this.$nextTick(() => {
         this.scrollToBottom();
       });
-      
-      this.loadMessages(chat.id);
-      this.loadChats();
     },
     async loadMessages() {
       const id_mio = localStorage.getItem('id_mio');
       const id_chat = localStorage.getItem('id_chat');
       const messages = await chatService.obtenerMensajesChat(id_mio, id_chat);
       this.messages = messages.mensajes;
-      
-      this.$nextTick(() => {
-        this.scrollToBottom();
-      });
     },  
     scrollToBottom() {
       this.$nextTick(() => {
@@ -532,8 +604,10 @@ export default {
     async createNewChat(user) {
       const response =  await chatService.crearChat(this.yo.id, user.id);
       if (response.success) {
+        await this.loadChats();
+        this.selectedChat = this.chats.find(chat => chat.id == response.chat_id);
+        this.seleccionarChat(this.selectedChat);
         this.closeNewChatModal();
-        this.loadChats();
       } else {
         if (response.tipo == 'existe') {
           Swal.fire({
@@ -566,28 +640,11 @@ export default {
       if (!this.profileModal) {
         this.profileModal = new bootstrap.Modal(this.$refs.profileModal);
       }
-      this.profileData = {
-        name: this.yo.name,
-        email: this.yo.email,
-        empresa: this.yo.empresa,
-        telefono: this.yo.telefono,
-        avatar: this.yo.avatar,
-        password: ''
-      };
       this.profileModal.show();
     },
     closeProfileModal() {
       if (this.profileModal) {
         this.profileModal.hide();
-      }
-    },
-    async updateProfile() {
-      try {
-        this.closeProfileModal();
-        this.yo = { ...this.yo, ...this.profileData };
-        localStorage.setItem('user', JSON.stringify(this.yo));
-      } catch (error) {
-        console.error('Error al actualizar perfil:', error);
       }
     },
     openFileExplorer() {
@@ -611,9 +668,10 @@ export default {
       
       if (response.success) {
         this.newMessage = '';
+        
+        await this.loadMessages();
+        await this.loadChats();
         this.scrollToBottom();
-        this.loadMessages();
-        this.loadChats();
       } else {
         Swal.fire({
           icon: 'error',
@@ -661,6 +719,64 @@ export default {
         clearInterval(this.updateInterval);
         this.updateInterval = null;
       }
+    },
+    openBroadcastModal() {
+      if (!this.broadcastModal) {
+        this.broadcastModal = new bootstrap.Modal(this.$refs.broadcastModal);
+      }
+      this.loadUsers();
+      this.broadcastSearchQuery = '';
+      this.broadcastModal.show();
+    },
+    closeBroadcastModal() {
+      if (this.broadcastModal) {
+        this.broadcastModal.hide();
+        this.broadcastMessage = '';
+        this.selectedUsers = [];
+        this.broadcastFile = null;
+      }
+    },
+    openBroadcastFileExplorer() {
+      this.$refs.broadcastFileInput.click();
+    },
+    handleBroadcastFileSelected(event) {
+      this.broadcastFile = event.target.files[0];
+    },
+    removeBroadcastFile() {
+      this.broadcastFile = null;
+      this.$refs.broadcastFileInput.value = '';
+    },  
+    searchUsersDifusion() {
+      this.availableUsersDifusion = this.users.filter(user => user.name.toLowerCase().includes(this.broadcastSearchQuery.toLowerCase()));
+    },
+    async sendBroadcastMessage() {
+      try {
+        
+        const response = await chatService.enviarMensajeDifusion(this.yo.id, this.selectedUsers.join(','), this.broadcastMessage, this.broadcastFile);
+
+        if (response.success) {
+          Swal.fire({
+            icon: 'success',
+            title: '¡Éxito!',
+            text: 'Mensaje de difusión enviado correctamente'
+          });
+          this.closeBroadcastModal();
+
+          this.loadChats();
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo enviar el mensaje de difusión'
+        });
+      }
+    },
+    buscarContactosChats() {
+      console.log(this.chats);
+      this.chatsFiltrados = this.chats.filter(chat => chat.nombre.toLowerCase().includes(this.searchQuery.toLowerCase()));
     }
   },
   watch: {
@@ -700,22 +816,23 @@ export default {
 
 .contact-item {
   margin: 10px;
-  border-radius: 10px;
-  background-color: #ffffff;
+  border-radius: 20px;
+  background-color: rgba(117, 117, 117, 0.1);
 }
 
 .contact-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #c6e2ff;
 }
 
 .contact-item.active {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: #9fc9f3;
 }
 
 /* Estilos para las burbujas de chat */
 .message {
   position: relative;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22) !important;
 }
 
 .message-mine {
@@ -773,5 +890,20 @@ export default {
 .modal-body img {
   max-height: 70vh;
   object-fit: contain;
+}
+
+.contenido_chat {
+  height: calc(100vh - 40px) !important;
+  box-shadow: -1px 4px 6px 1px rgba(0, 0, 0, 0.2);
+}
+
+.btn.rounded-circle {
+  border-radius: 50% !important;
+  width: 35px !important;
+  height: 35px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
 </style> 

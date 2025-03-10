@@ -56,7 +56,6 @@ class ChatController extends Controller
             ], 200);
         }
     }
-    
 
     public function obtenerChatsUsuario(Request $request)
     {
@@ -78,7 +77,9 @@ class ChatController extends Controller
                     $chat->last_seen = $this->formatLastSeen($usuario->last_seen);    
                     $chat->created_at = $chat->created_at;
                     $chat->fecha_chat = Carbon::parse($chat->created_at)->format('d/m/Y');
-                    $chat->hora_chat = Carbon::parse($chat->created_at)->format('H:i');
+                    $chat->hora_chat = Carbon::parse($chat->created_at)
+                        ->setTimezone('America/Bogota')
+                        ->format('g:i A');
                     $chat->online = $this->isOnline($usuario->online);
                 } else {
                     $chat->tipo = 'amigo';
@@ -89,7 +90,9 @@ class ChatController extends Controller
                     $chat->last_seen = $this->formatLastSeen($usuario->last_seen);
                     $chat->created_at = $chat->created_at;
                     $chat->fecha_chat = Carbon::parse($chat->created_at)->format('d/m/Y');
-                    $chat->hora_chat = Carbon::parse($chat->created_at)->format('H:i');
+                    $chat->hora_chat = Carbon::parse($chat->created_at)
+                        ->setTimezone('America/Bogota')
+                        ->format('g:i A');
                     $chat->online = $this->isOnline($usuario->online);
                 }
 
@@ -163,8 +166,8 @@ class ChatController extends Controller
             $mensaje = $nombreArchivo;
         }
 
-        $fecha = Carbon::now()->format('Y-m-d');
-        $hora = Carbon::now()->format('H:i:s');
+        $fecha = Carbon::now('America/Bogota')->format('Y-m-d');
+        $hora = Carbon::now('America/Bogota')->format('g:i:s A');
 
         $mensaje = DB::table('mensajes')->insert([
             'id_chat' => $chatId,
@@ -200,7 +203,9 @@ class ChatController extends Controller
         foreach ($mensajes as $mensaje) {
             $mensaje->is_mine = $mensaje->id_crea == $id ? true : false;
             $mensaje->fecha_mensaje = Carbon::parse($mensaje->fecha)->format('d/m/Y');
-            $mensaje->hora_mensaje = Carbon::parse($mensaje->hora)->format('H:i');
+            $mensaje->hora_mensaje = Carbon::parse($mensaje->hora)
+                ->setTimezone('America/Bogota')
+                ->format('g:i A');
         }
 
         $this->marcarMensajesComoLeidos($chatId, $id);
@@ -243,33 +248,57 @@ class ChatController extends Controller
 
     public function enviarMensajeDifusion(Request $request)
     {
-        $id_amigos_seleccionados = $request->id_amigos_seleccionados->explode(',');
-        $mensaje = $request->mensaje;
-        $id_crea = $request->id_crea;
-        $archivo = $request->archivo;
+        try {
+            $id_amigos_seleccionados = explode(',', $request->id_amigos_seleccionados);
+            $mensaje = $request->mensaje;
+            $id_crea = $request->id_crea;
+            $archivo = $request->archivo;
 
-        $ids_chats = [];
-
-        foreach ($id_amigos_seleccionados as $id_amigo) {
-            $ids_chats[] = $this->crearChatDifusion($id_crea, $id_amigo);
-        }
-
-        foreach ($ids_chats as $id_chat) {
-            //$this->guardarMensajeDifusion($id_crea, $id_chat, $mensaje);
+            // Si hay archivo, guardarlo una sola vez
             if (isset($archivo)) {
-                //$this->guardarArchivoMensajeDifusion($id_crea, $id_chat, $archivo);
-                dd("tiene archivo");
-            } else {
-                dd("no tiene archivo");
+                $nombreArchivo = time() . '_' . $archivo->getClientOriginalName();
+                
+                if (!file_exists(public_path('archivos'))) {
+                    mkdir(public_path('archivos'), 0777, true);
+                }
+                
+                // Guardar el archivo una sola vez
+                $archivo->move(public_path('archivos'), $nombreArchivo);
             }
+
+            $ids_chats = [];
+            foreach ($id_amigos_seleccionados as $id_amigo) {
+                $ids_chats[] = $this->crearChatDifusion($id_crea, $id_amigo);
+            }
+
+            foreach ($ids_chats as $id_chat) {
+                $this->guardarMensajeDifusion($id_crea, $id_chat, $mensaje);
+                
+                // Si hay archivo, crear el mensaje con la referencia al archivo
+                if (isset($archivo)) {
+                    DB::table('mensajes')->insert([
+                        'id_chat' => $id_chat,
+                        'id_crea' => $id_crea,
+                        'mensaje' => $nombreArchivo,
+                        'tiene_archivo' => 1,
+                        'fecha' => Carbon::now('America/Bogota')->format('Y-m-d'),
+                        'hora' => Carbon::now('America/Bogota')->format('g:i:s A'),
+                        'tipo_archivo' => $archivo->getClientOriginalExtension()
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mensaje difundido exitosamente'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al difundir el mensaje: ' . $e->getMessage()
+            ], 500);
         }
-
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Mensaje difundido exitosamente'
-        ], 200);
-        
     }
 
     public function crearChatDifusion($id_crea, $id_amigo)
@@ -277,9 +306,13 @@ class ChatController extends Controller
       $chatExistente = DB::table('chats')
       ->where(function($query) use ($id_crea, $id_amigo) {
         $query->where('id_crea', $id_crea)
-                ->where('id_amigo', $id_amigo);
+              ->where('id_amigo', $id_amigo);
       })
-      ->first(); 
+      ->orWhere(function($query) use ($id_crea, $id_amigo) {
+        $query->where('id_crea', $id_amigo)
+              ->where('id_amigo', $id_crea);
+      })
+      ->first();
 
       if ($chatExistente) {
         return $chatExistente->id;
@@ -298,8 +331,8 @@ class ChatController extends Controller
 
     public function guardarMensajeDifusion($id_crea, $id_chat, $mensaje)
     {
-        $fecha = Carbon::now()->format('Y-m-d');
-        $hora = Carbon::now()->format('H:i:s');
+        $fecha = Carbon::now('America/Bogota')->format('Y-m-d');
+        $hora = Carbon::now('America/Bogota')->format('g:i:s A');
         
         $mensaje = DB::table('mensajes')->insert([
             'id_chat' => $id_chat,
@@ -314,34 +347,4 @@ class ChatController extends Controller
         return $mensaje;
     }
 
-    public function guardarArchivoMensajeDifusion($id_crea, $id_chat, $archivo)
-    {
-        $nombreArchivo = $archivo->getClientOriginalName();
-            
-        if (!file_exists(public_path('archivos'))) {
-            mkdir(public_path('archivos'), 0777, true);
-        }
-        
-        $archivo->move(public_path('archivos'), $nombreArchivo);
-        $rutaArchivo = 'archivos/' . $nombreArchivo;
-        $tipoArchivo = $archivo->getClientOriginalExtension();
-
-
-        $mensaje = $nombreArchivo;
-        $fecha = Carbon::now()->format('Y-m-d');
-        $hora = Carbon::now()->format('H:i:s');
-        
-
-        $mensaje = DB::table('mensajes')->insert([
-            'id_chat' => $id_chat,
-            'id_crea' => $id_crea,
-            'mensaje' => $mensaje,
-            'tiene_archivo' => 1,
-            'fecha' => $fecha,
-            'hora' => $hora,
-            'tipo_archivo' => $tipoArchivo
-        ]);
-
-        return $mensaje;
-    }
 }

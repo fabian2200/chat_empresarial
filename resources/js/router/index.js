@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import Chat from '../components/Chat.vue'
+import Principal from '../components/Principal.vue'
+import Grupos from '../components/Grupos.vue'
+
 const routes = [
   {
     path: '/',
@@ -20,9 +23,21 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
-    path: '/chat',
-    name: 'chat',
-    component: Chat
+    path: '/principal',
+    name: 'Principal',
+    component: Principal,
+    children: [
+      {
+        path: 'chat',
+        name: 'chat',
+        component: Chat
+      },
+      {
+        path: 'grupos',
+        name: 'grupos',
+        component: Grupos
+      }
+    ]
   }
 ]
 

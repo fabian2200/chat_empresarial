@@ -1,6 +1,9 @@
 <template>
   <div class="login-container">
     <div class="login-box">
+      <div class="logo-container d-flex justify-content-center align-items-center">
+        <img src="/images/logo_empresa.png" alt="Logo" class="logo">
+      </div>
       <div class="text-center mb-4">
         <h2 class="login-title">Inicio de Sesión</h2>
         <p class="login-subtitle">Accede a tu chat empresarial</p>
@@ -109,7 +112,7 @@ export default {
         if (response.data.status === 'success') {
           await showSuccessMessage('¡Bienvenido!', response.data.message);
           localStorage.setItem('user', JSON.stringify(response.data.user));
-          this.$router.push('/chat');
+          this.$router.push('/principal/chat');
         }
       } catch (error) {
         const errorMessage = error.response?.data?.message || 'Error al iniciar sesión';
@@ -128,8 +131,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(rgba(26, 34, 126, 0.452), rgba(13, 72, 161, 0.226)),
-              url('/images/photo-1497366754035-f200968a6e72.avif') no-repeat center center;
+  background: linear-gradient(rgba(20, 26, 99, 0.815), rgba(23, 68, 134, 0.815)),
+              url('/images/photo-1497366754035-f200968a6e72.png') no-repeat center center;
   background-size: cover;
   background-attachment: fixed;
   padding: 20px;
@@ -156,7 +159,7 @@ export default {
 }
 
 .logo {
-  width: 120px;
+  width: 160px;
   height: auto;
 }
 

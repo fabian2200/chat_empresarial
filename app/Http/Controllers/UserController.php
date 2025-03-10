@@ -217,4 +217,101 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+    public function actualizarPerfil(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'empresa' => 'required|string|max:255',
+        ], [
+            'id.required' => 'El ID es obligatorio',
+            'id.integer' => 'El ID debe ser un número entero',
+            'name.required' => 'El nombre es obligatorio',
+            'email.required' => 'El correo electrónico es obligatorio',
+            'email.email' => 'El correo electrónico debe ser válido',
+            'empresa.required' => 'La empresa es obligatoria',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first()
+            ], 422);    
+        }
+
+        try {
+
+            if($request->password){
+                if(strlen($request->password) < 8){
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'La contraseña debe tener al menos 8 caracteres'
+                    ], 422);
+                }  
+
+                $password = Hash::make($request->password);
+                $data = [
+                    'name' => $request->name,   
+                    'email' => $request->email,         
+                    'empresa' => $request->empresa,
+                    'password' => $password
+                ];
+            }else{
+                $data = [
+                    'name' => $request->name,   
+                    'email' => $request->email,         
+                    'empresa' => $request->empresa,
+                ];
+            }
+
+            $user = DB::table('users')
+                ->where('id', $request->id)
+                ->update($data);
+
+            if($user){
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Perfil actualizado exitosamente'
+                ], 200);
+            }else{
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Error al actualizar el perfil. Por favor, intente nuevamente.'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al actualizar el perfil. Por favor, intente nuevamente.'
+            ], 500);
+        }
+    }
+
+    public function misDatos(Request $request)
+    {
+        $id = $request->id;
+        $user = DB::table('users')->where('id', $id)->first();
+
+        $user = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'empresa' => $user->empresa,
+            'avatar' => $user->avatar
+        ];
+        
+        if($user){
+            return response()->json([
+                'status' => 'success',
+                'data' => $user
+            ], 200);
+        }else{
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al obtener los datos del usuario. Por favor, intente nuevamente.'
+            ], 500);
+        }
+    }
 } 

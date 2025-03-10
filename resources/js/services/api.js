@@ -24,6 +24,7 @@ export const userService = {
                 localStorage.removeItem('user');
                 localStorage.removeItem('id_mio');
                 localStorage.removeItem('id_chat');
+                localStorage.removeItem('id_grupo');
                 window.location.href = '/login';
             }else{
                 Swal.fire({
@@ -96,5 +97,99 @@ export const chatService = {
                 timer: 1500
             });
         }
+    },
+    enviarMensajeDifusion: async (id_crea, id_amigos_seleccionados, mensaje, archivo) => {
+       const formData = new FormData();
+       formData.append('id_crea', id_crea);
+       formData.append('id_amigos_seleccionados', id_amigos_seleccionados);
+       formData.append('mensaje', mensaje);
+       if (archivo) {
+        formData.append('archivo', archivo);
+       }
+
+       const headers = {
+        'Content-Type': 'multipart/form-data'
+       }
+
+       const response = await http().post('/enviar-mensaje-difusion', formData, { headers });
+       return response.data;
     }
 }; 
+
+export const grupoService = {
+    crearGrupo: async (id_crea, nombre, id_amigos) => {
+        const formData = new FormData();
+        formData.append('id_crea', id_crea);
+        formData.append('nombre', nombre);
+        formData.append('id_amigos', id_amigos);
+
+        const headers = {
+            'Content-Type': 'multipart/form-data'
+        }
+    
+        const response = await http().post('/crear-grupo', formData, { headers });
+        return response.data;
+    },
+    obtenerGruposUsuario: async (id) => {
+        const response = await http().get('/grupos-mios?id=' + id);
+        return response.data;
+    },
+    guardarMensaje: async (id_crea, id_grupo, mensaje, tipo, archivo) => {
+        const formData = new FormData();
+        formData.append('id', id_crea);
+        formData.append('grupo_id', id_grupo);
+        formData.append('mensaje', mensaje);
+        formData.append('tipo', tipo);
+        if (tipo == 'archivo') {
+            formData.append('archivo', archivo);
+        }
+
+        const headers = {
+            'Content-Type': 'multipart/form-data'
+        }
+
+        const response = await http().post('/guardar-mensaje-grupo', formData, { headers });
+        return response.data;
+    },
+    obtenerMensajesGrupo: async (id, grupo_id) => {
+        const response = await http().get('/mensajes-grupo?id=' + id + '&grupo_id=' + grupo_id);
+        return response.data;
+    },
+    eliminarParticipante: async (id_crea, id_grupo, id_participante) => {
+        const response = await http().post('/eliminar-participante', { id_crea, id_grupo, id_participante });
+        return response.data;
+    },
+    reactivarParticipante: async (id_crea, id_grupo, id_participante) => {
+        const response = await http().post('/reactivar-participante', { id_crea, id_grupo, id_participante });
+        return response.data;
+    },
+    agregarParticipantes: async (id_crea, id_grupo, id_participantes) => {
+        id_participantes = id_participantes.join(',');
+        const response = await http().post('/agregar-participantes', { id_crea, id_grupo, id_participantes });
+        return response.data;
+    }
+}
+
+export const perfilService = {
+    actualizarPerfil: async (id, data) => {
+        const formData = new FormData();
+
+        formData.append('id', id);
+        formData.append('name', data.name);
+        formData.append('email', data.email);
+        formData.append('empresa', data.empresa);
+        formData.append('password', data.password);
+        
+        const headers = {
+            'Content-Type': 'multipart/form-data'
+        }
+
+        const response = await http().post('/actualizar-perfil', formData, { headers });
+        return response.data;
+    },
+    misDatos: async (id) => {
+        const response = await http().get('/mis-datos?id=' + id);
+        return response.data;
+    }
+}
+
