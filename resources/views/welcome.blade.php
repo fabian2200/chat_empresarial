@@ -3,7 +3,7 @@
     <style>
         .chat-messages {
             background: #f1ede6 !important;
-            background-image: url('/images/fondo_chat.png') !important;
+            background-image: url('{{ url('images/fondo_chat.png') }}') !important;
             background-size: 70% 70% !important;
             background-position: center;
             will-change: background-image;
@@ -11,7 +11,7 @@
             background-repeat: no-repeat;
         }
     </style>
-    <link rel="preload" href="/images/fondo_chat.png" as="image">
+    <link rel="preload" href="{{ url('images/fondo_chat.png') }}" as="image">
 </head>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>

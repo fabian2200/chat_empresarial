@@ -777,6 +777,12 @@ export default {
     buscarContactosChats() {
       console.log(this.chats);
       this.chatsFiltrados = this.chats.filter(chat => chat.nombre.toLowerCase().includes(this.searchQuery.toLowerCase()));
+    },
+    verificarLogin() {
+      const user = localStorage.getItem('user');
+      if (!user) {
+        this.$router.push('/login');
+      }
     }
   },
   watch: {
@@ -792,6 +798,7 @@ export default {
     }
   },
   async mounted() {
+    this.verificarLogin();
     await this.seleccionarMiUsuario();
     await this.loadChats();
     this.verificarChatActual();

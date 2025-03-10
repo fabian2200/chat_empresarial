@@ -417,11 +417,18 @@ export default {
         }
     },
     async mounted() {
+        this.verificarLogin();
         await this.loadGroups();
         await this.verificarGrupoActual();
         this.startAutoUpdate();
     },
     methods: {
+        verificarLogin() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                this.$router.push('/login');
+            }
+        },
         verificarGrupoActual() {
             const id_grupo = localStorage.getItem('id_grupo');
             if (id_grupo) {
