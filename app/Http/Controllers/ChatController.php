@@ -347,4 +347,37 @@ class ChatController extends Controller
         return $mensaje;
     }
 
+
+    public function cargarcsv()
+    {
+        $path = public_path('libro1.csv');
+
+        $file = fopen($path, 'r');
+        while (($line = fgetcsv($file, 1000, ">")) !== FALSE) {
+            $line = explode(";", $line[0]);
+            $data[] = $line;
+        }
+
+        $data = array_slice($data, 1);
+        fclose($file);
+
+        
+        foreach ($data as $key) {
+            DB::table('users')->insert([
+                'name' => $key[0],
+                'email' => $key[1],
+                'empresa' => $key[2],
+                'password' => $key[3],
+                'last_seen' => $key[4],
+                'avatar' => $key[5],
+                'online' => $key[6],
+                'primera_vez' => $key[7]
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Usuarios cargados exitosamente'
+        ], 200);
+    }
 }

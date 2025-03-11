@@ -3,7 +3,7 @@
         <form @submit.prevent="updateProfile">
             <div class="text-center mb-4 mt-4">
                 <img 
-                    :src="'/images/'+yo?.avatar+'.png'" 
+                    :src="baseUrl+'/images/'+yo?.avatar+'.png'" 
                     class="rounded-circle mb-3"
                     width="100" 
                     height="100"
@@ -21,6 +21,7 @@
                 >
             </div>
 
+
             <div class="mb-3">
                 <label class="form-label">Email:</label>
                 <input 
@@ -29,13 +30,6 @@
                     v-model="profileData.email"
                     required
                 >
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Empresa:</label>
-                <select class="form-select" v-model="profileData.empresa">
-                    <option v-for="empresa in empresas" :key="empresa" :value="empresa">{{ empresa }}</option>
-                </select>
             </div>
 
             <div class="mb-3">
@@ -48,6 +42,23 @@
                 >
             </div>
 
+            <div class="mb-3">
+                <label class="form-label">Empresa:</label>
+                <select class="form-select" v-model="profileData.empresa">
+                    <option v-for="empresa in empresas" :key="empresa" :value="empresa">{{ empresa }}</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Género:</label>
+                <select class="form-select" v-model="profileData.avatar">
+                    <option value="masculino">Masculino</option>
+                    <option value="femenino">Femenino</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+            
+
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary">
                     Actualizar Perfil
@@ -59,7 +70,7 @@
 <script>
 import { perfilService } from '../services/api'
 import Swal from 'sweetalert2'
-
+import { baseUrl } from '../baseUrl';
 export default {
     name: 'miPerfil',
     data() {
@@ -68,7 +79,7 @@ export default {
                 name: '',
                 email: '',
                 empresa: '',
-                telefono: '',
+                avatar: '',
                 password: ''
             },
             yo: null,
@@ -77,8 +88,12 @@ export default {
                 'CSI Ingeniería',
                 'GLIX Ingeniería',
                 'RGL Ingeniería',
-            ]
+            ],
+            baseUrl: baseUrl
         }
+    },
+    created() {
+        this.misDatos();
     },
     mounted() {
         this.misDatos();
@@ -107,7 +122,9 @@ export default {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: response.message
+                    text: response.message,
+                    showConfirmButton: false,
+                    timer: 1500
                 })
             }
         }

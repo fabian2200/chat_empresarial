@@ -179,13 +179,30 @@ export const perfilService = {
         formData.append('name', data.name);
         formData.append('email', data.email);
         formData.append('empresa', data.empresa);
-        formData.append('password', data.password);
+        if(data.password != undefined && data.password != ''){
+            formData.append('password', data.password);
+        }
+        formData.append('avatar', data.avatar);
         
         const headers = {
             'Content-Type': 'multipart/form-data'
         }
 
         const response = await http().post('/actualizar-perfil', formData, { headers });
+        return response.data;
+    },
+    actualizarDatos: async (id, data) => {
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('password', data.password);
+        formData.append('empresa', data.empresa);
+        formData.append('avatar', data.avatar);
+
+        const headers = {
+            'Content-Type': 'multipart/form-data'
+        }
+        
+        const response = await http().post('/actualizar-datos', formData, { headers });
         return response.data;
     },
     misDatos: async (id) => {

@@ -376,7 +376,7 @@
                     <button @click="closeProfile" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <miPerfil />
+                    <miPerfil ref="miPerfil" />
                 </div>
             </div>
         </div>
@@ -650,6 +650,7 @@ export default {
             }
         },
         openProfile() {
+            this.$refs.miPerfil.misDatos();
             this.profileModal = new bootstrap.Modal(document.getElementById('miPerfilModal'));
             this.profileModal.show();
         },

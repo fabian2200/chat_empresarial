@@ -183,7 +183,8 @@ class UserController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'empresa' => $user->empresa,
-                    'avatar' => $user->avatar ?? 'https://i.pravatar.cc/150?img=' . $user->id
+                    'avatar' => $user->avatar ?? 'https://i.pravatar.cc/150?img=' . $user->id,
+                    'primera_vez' => $user->primera_vez
                 ]
             ]);
 
@@ -225,6 +226,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'empresa' => 'required|string|max:255',
+            'avatar' => 'required|string|in:masculino,femenino,otro',
         ], [
             'id.required' => 'El ID es obligatorio',
             'id.integer' => 'El ID debe ser un número entero',
@@ -232,13 +234,15 @@ class UserController extends Controller
             'email.required' => 'El correo electrónico es obligatorio',
             'email.email' => 'El correo electrónico debe ser válido',
             'empresa.required' => 'La empresa es obligatoria',
+            'avatar.required' => 'El género es obligatorio',
+            'avatar.in' => 'El género seleccionado no es válido',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => 'error',
                 'message' => $validator->errors()->first()
-            ], 422);    
+            ], 200);    
         }
 
         try {
@@ -248,7 +252,7 @@ class UserController extends Controller
                     return response()->json([
                         'status' => 'error',
                         'message' => 'La contraseña debe tener al menos 8 caracteres'
-                    ], 422);
+                    ], 200);
                 }  
 
                 $password = Hash::make($request->password);
@@ -256,13 +260,15 @@ class UserController extends Controller
                     'name' => $request->name,   
                     'email' => $request->email,         
                     'empresa' => $request->empresa,
-                    'password' => $password
+                    'password' => $password,
+                    'avatar' => $request->avatar,
                 ];
             }else{
                 $data = [
                     'name' => $request->name,   
                     'email' => $request->email,         
                     'empresa' => $request->empresa,
+                    'avatar' => $request->avatar,
                 ];
             }
 
@@ -273,19 +279,19 @@ class UserController extends Controller
             if($user){
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Perfil actualizado exitosamente'
+                    'message' => 'Perfil actualizado exitosamente, puede cerrar la ventana.'
                 ], 200);
             }else{
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Error al actualizar el perfil. Por favor, intente nuevamente.'
-                ], 500);
+                ], 200);
             }
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Error al actualizar el perfil. Por favor, intente nuevamente.'
-            ], 500);
+            ], 200);
         }
     }
 
@@ -299,7 +305,8 @@ class UserController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'empresa' => $user->empresa,
-            'avatar' => $user->avatar
+            'avatar' => $user->avatar,
+            'primera_vez' => $user->primera_vez
         ];
         
         if($user){
@@ -312,6 +319,59 @@ class UserController extends Controller
                 'status' => 'error',
                 'message' => 'Error al obtener los datos del usuario. Por favor, intente nuevamente.'
             ], 500);
+        }
+    }
+
+    public function actualizarDatos(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+            'password' => 'required|string|min:8',
+            'empresa' => 'required|string|max:255', 
+            'avatar' => 'required|string|in:masculino,femenino,otro',
+        ], [
+            'id.required' => 'El ID es obligatorio',
+            'id.integer' => 'El ID debe ser un número entero',
+            'password.required' => 'La contraseña es obligatoria',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+            'empresa.required' => 'La empresa es obligatoria',
+            'avatar.required' => 'El género es obligatorio',
+            'avatar.in' => 'El género seleccionado no es válido',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([   
+                'status' => 'error',    
+                'message' => $validator->errors()->first()
+            ], 200);
+        }
+
+        try {   
+            $user = DB::table('users')
+                ->where('id', $request->id)
+                ->update([
+                    'password' => Hash::make($request->password),
+                    'empresa' => $request->empresa,
+                    'avatar' => $request->avatar,
+                    'primera_vez' => 1
+                ]);
+
+            if($user){
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Datos actualizados exitosamente, puede cerrar la ventana.'
+                ], 200);
+            }else{
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Error al actualizar los datos. Por favor, intente nuevamente.'
+                ], 200);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al actualizar los datos. Por favor, intente nuevamente.'
+            ], 200);
         }
     }
 } 

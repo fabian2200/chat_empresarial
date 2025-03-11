@@ -289,7 +289,7 @@
             ></button>
           </div>
           <div class="modal-body">
-            <miPerfil />
+            <miPerfil ref="miPerfil" />
           </div>
         </div>
       </div>
@@ -639,6 +639,7 @@ export default {
 
     },
     openProfile() {
+      this.$refs.miPerfil.misDatos();
       if (!this.profileModal) {
         this.profileModal = new bootstrap.Modal(this.$refs.profileModal);
       }

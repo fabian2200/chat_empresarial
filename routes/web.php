@@ -25,9 +25,12 @@ Route::prefix('api')->group(function () {
 
     Route::post('/actualizar-perfil', [UserController::class, 'actualizarPerfil']);
     Route::get('/mis-datos', [UserController::class, 'misDatos']);
+    Route::post('/actualizar-datos', [UserController::class, 'actualizarDatos']);
     // Rutas de la API de chats
     Route::get('/chats-mios', [ChatController::class, 'obtenerChatsUsuario']);
     Route::post('/crear-chat', [ChatController::class, 'crearChat']);
+
+    Route::get('/cargar-csv', [ChatController::class, 'cargarcsv']);
 });
 
 Route::get('/{any}', function () {
