@@ -252,14 +252,14 @@
               <!-- Imágenes -->
               <img 
                 v-if="isImage(selectedFile)"
-                :src="'/archivos/' + selectedFile" 
+                :src="baseUrl+'archivos/' + selectedFile" 
                 class="img-fluid mb-3"
                 alt="Vista previa"
               >
               <!-- PDFs -->
               <iframe
                 v-else-if="isPDF(selectedFile)"
-                :src="'/archivos/' + selectedFile"
+                :src="baseUrl+'archivos/' + selectedFile"
                 width="100%"
                 height="500px"
                 class="mb-3"
@@ -272,7 +272,7 @@
           </div>
           <div class="modal-footer">
             <a 
-              :href="'/archivos/' + selectedFile" 
+              :href="baseUrl+'archivos/' + selectedFile" 
               class="btn btn-primary"
               download
             >
@@ -387,6 +387,7 @@ import { userService, grupoService } from '../services/api'
 import Swal from 'sweetalert2'
 import * as bootstrap from 'bootstrap'
 import miPerfil from './miPerfil.vue'
+import { baseUrl } from '../baseUrl';
 
 export default {
     components: {
@@ -414,6 +415,7 @@ export default {
             participantesNoAgregados: [],
             groupMembersAgregar: [],
             profileModal: null,
+            baseUrl: baseUrl
         }
     },
     async mounted() {

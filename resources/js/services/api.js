@@ -1,5 +1,6 @@
 import Swal from "sweetalert2";
 import {http} from "./http";
+import { baseUrl } from '../baseUrl';
 
 export const userService = {
     getUsers: async () => {
@@ -25,7 +26,7 @@ export const userService = {
                 localStorage.removeItem('id_mio');
                 localStorage.removeItem('id_chat');
                 localStorage.removeItem('id_grupo');
-                window.location.href = '/login';
+                window.location.href = baseUrl+'login';
             }else{
                 Swal.fire({
                     icon: 'error',
@@ -189,6 +190,24 @@ export const perfilService = {
     },
     misDatos: async (id) => {
         const response = await http().get('/mis-datos?id=' + id);
+        return response.data;
+    }
+}
+
+export const authService = {
+    login: async (email, password) => {
+        const response = await http().post('/login', { email, password });
+        return response.data;
+    },
+    register: async (name, email, password, empresa, avatar) => {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('empresa', empresa);
+        formData.append('avatar', avatar);
+
+        const response = await http().post('/register', formData);
         return response.data;
     }
 }

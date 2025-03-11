@@ -3,15 +3,28 @@
     <style>
         .chat-messages {
             background: #f1ede6 !important;
-            background-image: url('{{ url('images/fondo_chat.png') }}') !important;
+            background-image: url('{{ url('nuevo/public/images/fondo_chat.png') }}') !important;
             background-size: 70% 70% !important;
             background-position: center;
             will-change: background-image;
             contain: paint;
             background-repeat: no-repeat;
         }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(rgba(20, 26, 99, 0.815), rgba(23, 68, 134, 0.815)),
+                        url('images/photo-1497366754035-f200968a6e72.png') no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed;
+            padding: 20px;
+        }
+
     </style>
-    <link rel="preload" href="{{ url('images/fondo_chat.png') }}" as="image">
+    <link rel="preload" href="{{ url('nuevo/public/images/fondo_chat.png') }}" as="image">
 </head>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>

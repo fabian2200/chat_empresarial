@@ -115,8 +115,8 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { showSuccessMessage, showErrorMessage } from '../utils/swal';
+import { authService } from '../services/api';
 
 export default {
   name: 'Register',
@@ -148,21 +148,14 @@ export default {
       this.error = null;
 
       try {
-        const formData = new FormData();
-        formData.append('name', this.form.name);
-        formData.append('email', this.form.email);
-        formData.append('empresa', this.form.empresa);
-        formData.append('avatar', this.form.gender);
-        formData.append('password', this.form.password);
+        const response = await authService.register(this.form.name, this.form.email, this.form.password, this.form.empresa, this.form.gender);
 
-        const response = await axios.post('/api/register', formData);
-
-        if (response.data.status === 'success') {
-          await showSuccessMessage('¡Registro Exitoso!', response.data.message);
+        if (response.status === 'success') {
+          await showSuccessMessage('¡Registro Exitoso!', response.message);
           this.$router.push('/login');
         }
       } catch (error) {
-        const errorMessage = error.response?.data?.message || 'Error al registrar usuario';
+        const errorMessage = error.response.data.message || 'Error al registrar usuario';
         await showErrorMessage('Error', errorMessage);
       } finally {
         this.loading = false;
@@ -173,17 +166,6 @@ export default {
 </script>
 
 <style scoped>
-.login-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(rgba(20, 26, 99, 0.815), rgba(23, 68, 134, 0.815)),
-              url('/images/photo-1497366754035-f200968a6e72.png') no-repeat center center;
-  background-size: cover;
-  background-attachment: fixed;
-  padding: 20px;
-}
 
 .register-box {
   background: rgba(255, 255, 255, 0.98);

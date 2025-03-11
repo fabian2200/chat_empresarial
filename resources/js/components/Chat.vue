@@ -49,7 +49,7 @@
             <div class="d-flex align-items-center elemento">
               <div class="position-relative">
                 <img 
-                  :src="'/images/'+chat.avatar+'.png'" 
+                  :src="baseUrl+'images/'+chat.avatar+'.png'" 
                   class="rounded-circle"
                   width="50" 
                   height="50"
@@ -91,7 +91,7 @@
           <div class="chat-header p-3 border-bottom bg-white" style="background-color: #e1e1e1 !important;">
             <div class="d-flex align-items-center">
               <img 
-                :src="'/images/'+selectedChat.avatar+'.png'" 
+                :src="baseUrl+'images/'+selectedChat.avatar+'.png'" 
                 class="rounded-circle"
                 width="45" 
                 height="45"
@@ -247,7 +247,7 @@
                 @click="createNewChat(user)"
               >
                 <img 
-                  :src="'/images/'+user.avatar+'.png'" 
+                  :src="baseUrl+'images/'+user.avatar+'.png'" 
                   class="rounded-circle"
                   width="40" 
                   height="40"
@@ -318,14 +318,14 @@
               <!-- Imágenes -->
               <img 
                 v-if="isImage(selectedFile)"
-                :src="'/archivos/' + selectedFile" 
+                :src="baseUrl+'archivos/' + selectedFile" 
                 class="img-fluid mb-3"
                 alt="Vista previa"
               >
               <!-- PDFs -->
               <iframe
                 v-else-if="isPDF(selectedFile)"
-                :src="'/archivos/' + selectedFile"
+                :src="baseUrl+'archivos/' + selectedFile"
                 width="100%"
                 height="500px"
                 class="mb-3"
@@ -338,7 +338,7 @@
           </div>
           <div class="modal-footer">
             <a 
-              :href="'/archivos/' + selectedFile" 
+              :href="baseUrl+'archivos/' + selectedFile" 
               class="btn btn-primary"
               download
             >
@@ -404,7 +404,7 @@
                   >
                 </div>
                 <img 
-                  :src="'/images/'+user.avatar+'.png'" 
+                  :src="baseUrl+'images/'+user.avatar+'.png'" 
                   class="rounded-circle ms-2"
                   width="40" 
                   height="40"
@@ -476,6 +476,7 @@ import * as bootstrap from 'bootstrap'
 import { userService, chatService } from '../services/api' 
 import Swal from 'sweetalert2'
 import miPerfil from './miPerfil.vue'
+import { baseUrl } from '../baseUrl';
 
 export default {
   components: {
@@ -522,6 +523,7 @@ export default {
       broadcastFile: null,
       broadcastSearchQuery: '',
       availableUsersDifusion: [],
+      baseUrl: baseUrl
     }
   },
   methods: {

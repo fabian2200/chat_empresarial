@@ -4,6 +4,7 @@ import Register from '../components/Register.vue'
 import Chat from '../components/Chat.vue'
 import Principal from '../components/Principal.vue'
 import Grupos from '../components/Grupos.vue'
+import { baseUrl } from '../baseUrl';
 
 const routes = [
   {
@@ -42,7 +43,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(baseUrl),
   routes
 })
 

@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-box">
       <div class="logo-container d-flex justify-content-center align-items-center">
-        <img src="/images/logo_empresa.png" alt="Logo" class="logo">
+        <img :src="baseUrl+'images/logo_empresa.png'" alt="Logo" class="logo">
       </div>
       <div class="text-center mb-4">
         <h2 class="login-title">Inicio de Sesión</h2>
@@ -84,8 +84,9 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { showSuccessMessage, showErrorMessage } from '../utils/swal';
+import { authService } from '../services/api';
+import { baseUrl } from '../baseUrl';
 
 export default {
   name: 'Login',
@@ -98,7 +99,8 @@ export default {
       },
       loading: false,
       error: null,
-      showPassword: false
+      showPassword: false,
+      baseUrl: baseUrl
     }
   },
   methods: {
@@ -107,15 +109,16 @@ export default {
       this.error = null;
 
       try {
-        const response = await axios.post('/api/login', this.form);
+        const response = await authService.login(this.form.email, this.form.password);
         
-        if (response.data.status === 'success') {
-          await showSuccessMessage('¡Bienvenido!', response.data.message);
-          localStorage.setItem('user', JSON.stringify(response.data.user));
+        if (response.status === 'success') {
+          await showSuccessMessage('¡Bienvenido!', response.message);
+          localStorage.setItem('user', JSON.stringify(response.user));
           this.$router.push('/principal/chat');
         }
       } catch (error) {
-        const errorMessage = error.response?.data?.message || 'Error al iniciar sesión';
+        console.log(error);
+        const errorMessage = error.response.data.message || 'Error al iniciar sesión';
         await showErrorMessage('Error', errorMessage);
       } finally {
         this.loading = false;
@@ -126,18 +129,6 @@ export default {
 </script>
 
 <style scoped>
-.login-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(rgba(20, 26, 99, 0.815), rgba(23, 68, 134, 0.815)),
-              url('/images/photo-1497366754035-f200968a6e72.png') no-repeat center center;
-  background-size: cover;
-  background-attachment: fixed;
-  padding: 20px;
-}
-
 
 .login-box {
   background: rgba(255, 255, 255, 0.95);
