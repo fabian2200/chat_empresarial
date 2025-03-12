@@ -42,7 +42,7 @@
 
             <div class="mb-3">
                 <label class="form-label">Género:</label>
-                <select class="form-select" v-model="profileData.avatar">
+                <select class="form-select" v-model="profileData.genero">
                     <option value="masculino">Masculino</option>
                     <option value="femenino">Femenino</option>
                     <option value="otro">Otro</option>
@@ -69,7 +69,7 @@ export default {
             profileData: {
                 password: '',
                 empresa: '',
-                avatar: ''
+                genero: ''
             },
             empresas: [
                 'LEER Ingeniería',
@@ -98,7 +98,7 @@ export default {
             }
         },
         updateProfile() {
-            if(this.profileData.password === '' || this.profileData.empresa === '' || this.profileData.avatar === '') {
+            if(this.profileData.password === '' || this.profileData.empresa === '' || this.profileData.genero === '') {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',

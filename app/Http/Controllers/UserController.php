@@ -14,7 +14,7 @@ class UserController extends Controller
     {
         try {
             $users = DB::table('users')
-                ->select('id', 'name', 'email', 'avatar', 'last_seen', 'empresa', 'online')
+                ->select('id', 'name', 'email', 'avatar', 'last_seen', 'empresa', 'online', 'genero')
                 ->get()
                 ->map(function ($user) {
                     return [
@@ -24,7 +24,8 @@ class UserController extends Controller
                         'online' => $this->isOnline($user->online),
                         'lastSeen' => $this->formatLastSeen($user->last_seen),
                         'empresa' => $user->empresa,
-                        'email' => $user->email
+                        'email' => $user->email,
+                        'genero' => $user->genero
                     ];
                 });
 
@@ -40,7 +41,7 @@ class UserController extends Controller
             $query = $request->input('query');
             
             $users = DB::table('users')
-                ->select('id', 'name', 'email', 'avatar', 'last_seen', 'online', 'empresa')
+                ->select('id', 'name', 'email', 'avatar', 'last_seen', 'online', 'empresa', 'genero')
                 ->where('name', 'LIKE', "%{$query}%")
                 ->orWhere('email', 'LIKE', "%{$query}%")
                 ->get()
@@ -48,7 +49,8 @@ class UserController extends Controller
                     return [
                         'id' => $user->id,
                         'name' => $user->name,
-                        'avatar' => $user->avatar ?? 'https://i.pravatar.cc/150?img=' . $user->id,
+                        'avatar' => $user->avatar,
+                        'genero' => $user->genero,
                         'online' => $this->isOnline($user->online),
                         'lastSeen' => $this->formatLastSeen($user->last_seen),
                         'empresa' => $user->empresa,
@@ -183,7 +185,8 @@ class UserController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'empresa' => $user->empresa,
-                    'avatar' => $user->avatar ?? 'https://i.pravatar.cc/150?img=' . $user->id,
+                    'avatar' => $user->avatar,
+                    'genero' => $user->genero,
                     'primera_vez' => $user->primera_vez
                 ]
             ]);
@@ -226,7 +229,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'empresa' => 'required|string|max:255',
-            'avatar' => 'required|string|in:masculino,femenino,otro',
+            'genero' => 'required|string|in:masculino,femenino,otro',
         ], [
             'id.required' => 'El ID es obligatorio',
             'id.integer' => 'El ID debe ser un número entero',
@@ -234,8 +237,8 @@ class UserController extends Controller
             'email.required' => 'El correo electrónico es obligatorio',
             'email.email' => 'El correo electrónico debe ser válido',
             'empresa.required' => 'La empresa es obligatoria',
-            'avatar.required' => 'El género es obligatorio',
-            'avatar.in' => 'El género seleccionado no es válido',
+            'genero.required' => 'El género es obligatorio',
+            'genero.in' => 'El género seleccionado no es válido',
         ]);
 
         if ($validator->fails()) {
@@ -246,6 +249,16 @@ class UserController extends Controller
         }
 
         try {
+
+            $file_avatar = $request->avatar_file;
+            $nombre_avatar = "";
+            if($file_avatar){
+                $nombre_avatar = time().'.'.$file_avatar->getClientOriginalExtension();
+                $file_avatar->move(public_path('images'), $nombre_avatar);
+                $request->avatar = $nombre_avatar;
+            }else{
+                $request->avatar = $request->avatar;
+            }
 
             if($request->password){
                 if(strlen($request->password) < 8){
@@ -262,6 +275,7 @@ class UserController extends Controller
                     'empresa' => $request->empresa,
                     'password' => $password,
                     'avatar' => $request->avatar,
+                    'genero' => $request->genero,
                 ];
             }else{
                 $data = [
@@ -269,6 +283,7 @@ class UserController extends Controller
                     'email' => $request->email,         
                     'empresa' => $request->empresa,
                     'avatar' => $request->avatar,
+                    'genero' => $request->genero,
                 ];
             }
 
@@ -306,6 +321,7 @@ class UserController extends Controller
             'email' => $user->email,
             'empresa' => $user->empresa,
             'avatar' => $user->avatar,
+            'genero' => $user->genero,
             'primera_vez' => $user->primera_vez
         ];
         
@@ -328,15 +344,15 @@ class UserController extends Controller
             'id' => 'required|integer',
             'password' => 'required|string|min:8',
             'empresa' => 'required|string|max:255', 
-            'avatar' => 'required|string|in:masculino,femenino,otro',
+            'genero' => 'required|string|in:masculino,femenino,otro',
         ], [
             'id.required' => 'El ID es obligatorio',
             'id.integer' => 'El ID debe ser un número entero',
             'password.required' => 'La contraseña es obligatoria',
             'password.min' => 'La contraseña debe tener al menos 8 caracteres',
             'empresa.required' => 'La empresa es obligatoria',
-            'avatar.required' => 'El género es obligatorio',
-            'avatar.in' => 'El género seleccionado no es válido',
+            'genero.required' => 'El género es obligatorio',
+            'genero.in' => 'El género seleccionado no es válido',
         ]);
 
         if ($validator->fails()) {
@@ -352,7 +368,8 @@ class UserController extends Controller
                 ->update([
                     'password' => Hash::make($request->password),
                     'empresa' => $request->empresa,
-                    'avatar' => $request->avatar,
+                    'genero' => $request->genero,
+                    'avatar' => $request->genero.'.png',
                     'primera_vez' => 1
                 ]);
 

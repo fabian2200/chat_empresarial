@@ -25,6 +25,7 @@
         "bootstrap": "^5.3.3",
         "bootstrap-icons": "^1.11.3",
         "sweetalert2": "^11.17.2",
-        "vue-router": "^4.5.0"
+        "vue-router": "^4.5.0",
+        "vue3-loading-overlay": "^0.0.0"
     }
 }

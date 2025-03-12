@@ -113,8 +113,10 @@ export default {
         
         if (response.status === 'success') {
           await showSuccessMessage('¡Bienvenido!', response.message);
-          localStorage.setItem('user', JSON.stringify(response.user));
-          this.$router.push('/principal/chat');
+          setTimeout(() => {
+            localStorage.setItem('user', JSON.stringify(response.user));
+            this.$router.push('/principal/chat');
+          }, 1200);
         }
       } catch (error) {
         console.log(error);

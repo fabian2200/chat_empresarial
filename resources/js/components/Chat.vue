@@ -49,7 +49,7 @@
             <div class="d-flex align-items-center elemento">
               <div class="position-relative">
                 <img 
-                  :src="baseUrl+'images/'+chat.avatar+'.png'" 
+                  :src="baseUrl+'images/'+chat.avatar" 
                   class="rounded-circle"
                   width="50" 
                   height="50"
@@ -91,7 +91,7 @@
           <div class="chat-header p-3 border-bottom bg-white" style="background-color: #e1e1e1 !important;">
             <div class="d-flex align-items-center">
               <img 
-                :src="baseUrl+'images/'+selectedChat.avatar+'.png'" 
+                :src="baseUrl+'images/'+selectedChat.avatar" 
                 class="rounded-circle"
                 width="45" 
                 height="45"
@@ -247,7 +247,7 @@
                 @click="createNewChat(user)"
               >
                 <img 
-                  :src="baseUrl+'images/'+user.avatar+'.png'" 
+                  :src="baseUrl+'images/'+user.avatar" 
                   class="rounded-circle"
                   width="40" 
                   height="40"
@@ -404,7 +404,7 @@
                   >
                 </div>
                 <img 
-                  :src="baseUrl+'images/'+user.avatar+'.png'" 
+                  :src="baseUrl+'images/'+user.avatar" 
                   class="rounded-circle ms-2"
                   width="40" 
                   height="40"
@@ -786,6 +786,9 @@ export default {
       if (!user) {
         this.$router.push('/login');
       }
+    },
+    searchUsers() {
+      this.availableUsers = this.users.filter(user => user.name.toLowerCase().includes(this.newChatSearchQuery.toLowerCase()));
     }
   },
   watch: {

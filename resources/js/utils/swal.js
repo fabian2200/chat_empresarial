@@ -13,11 +13,8 @@ export const showSuccessMessage = (title, message) => {
         icon: 'success',
         title: title,
         text: message,
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#1a237e',
-        customClass: {
-            confirmButton: 'btn btn-primary'
-        }
+        showConfirmButton: false,
+        timer: 1500
     });
 };
 

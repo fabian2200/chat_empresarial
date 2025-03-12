@@ -173,22 +173,11 @@ export const grupoService = {
 
 export const perfilService = {
     actualizarPerfil: async (id, data) => {
-        const formData = new FormData();
-
-        formData.append('id', id);
-        formData.append('name', data.name);
-        formData.append('email', data.email);
-        formData.append('empresa', data.empresa);
-        if(data.password != undefined && data.password != ''){
-            formData.append('password', data.password);
-        }
-        formData.append('avatar', data.avatar);
-        
         const headers = {
             'Content-Type': 'multipart/form-data'
         }
 
-        const response = await http().post('/actualizar-perfil', formData, { headers });
+        const response = await http().post('/actualizar-perfil', data, { headers });
         return response.data;
     },
     actualizarDatos: async (id, data) => {
@@ -196,7 +185,7 @@ export const perfilService = {
         formData.append('id', id);
         formData.append('password', data.password);
         formData.append('empresa', data.empresa);
-        formData.append('avatar', data.avatar);
+        formData.append('genero', data.genero);
 
         const headers = {
             'Content-Type': 'multipart/form-data'

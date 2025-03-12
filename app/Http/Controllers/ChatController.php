@@ -370,8 +370,9 @@ class ChatController extends Controller
                 'password' => $key[3],
                 'last_seen' => $key[4],
                 'avatar' => $key[5],
-                'online' => $key[6],
-                'primera_vez' => $key[7]
+                'genero' => $key[6],
+                'online' => $key[7],
+                'primera_vez' => $key[8]
             ]);
         }
 
