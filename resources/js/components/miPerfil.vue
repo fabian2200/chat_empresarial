@@ -10,7 +10,7 @@
             :is-full-page="true">
         </loading>
         <form @submit.prevent="updateProfile">
-            <div class="text-center mb-4 mt-4" style="position: relative;">
+            <div class="text-center mb-3 mt-3" style="position: relative;">
                 <img 
                     style="border: 2px solid #e7e7e7 !important; padding: 5px;"
                     :src="urlImagenAvatar" 

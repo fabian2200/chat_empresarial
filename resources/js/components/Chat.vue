@@ -10,16 +10,16 @@
               <h5 class="mb-0">Bienvenido</h5>
               <small class="text-muted">{{ yo?.name }}</small>
             </div>
-            <button class="btn btn-outline-success rounded-circle" @click="openNewChat">
+            <button data-bs-toggle="tooltip" data-bs-placement="bottom" title="Nuevo Chat" class="btn btn-outline-success rounded-circle" @click="openNewChat">
               <i class="fa-solid fa-comment-medical"></i>
             </button>
-            <button class="btn btn-outline-primary rounded-circle" @click="openBroadcastModal">
+            <button data-bs-toggle="tooltip" data-bs-placement="bottom" title="Difusión" class="btn btn-outline-primary rounded-circle" @click="openBroadcastModal">
               <i class="bi bi-broadcast"></i>
             </button>
-            <button class="btn btn-outline-secondary rounded-circle" @click="openProfile">
+            <button data-bs-toggle="tooltip" data-bs-placement="bottom" title="Configuración" class="btn btn-outline-secondary rounded-circle" @click="openProfile">
               <i class="bi bi-gear-fill"></i>
             </button>
-            <button class="btn btn-outline-danger rounded-circle" @click="logout">
+            <button data-bs-toggle="tooltip" data-bs-placement="bottom" title="Cerrar Sesión" class="btn btn-outline-danger rounded-circle" @click="logout">
               <i class="bi bi-box-arrow-right"></i>
             </button>
           </div>
@@ -61,18 +61,18 @@
                   style="width: 12px; height: 12px;"
                 ></span>
               </div>
-              <div class="ms-3 flex-grow-1">
-                <small v-if="chat.mensajes_sin_leer > 0" class="badge bg-danger ms-2" style="margin-bottom: 10px; margin-left: 0px !important;">
-                  {{ chat.mensajes_sin_leer }} Mensajes nuevos
+              <div class="ms-3 flex-grow-1" style="position: relative;">
+                <small v-if="chat.mensajes_sin_leer > 0" class="badge bg-danger ms-2" style="margin-bottom: 10px; margin-left: 0px !important; position: absolute; top: 0; right: 0; width: 25pt; height: 25pt; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                  <i style="margin-right: 3px;" class="bi bi-chat-dots"></i> {{ chat.mensajes_sin_leer }}
                 </small>
-                
-                <h6 class="mb-0">
+                <small class="text-muted">{{ chat.empresa }}</small>
+                <br>
+                <small class="mb-0">
                   {{ chat.nombre }} 
                   <span :class="chat.online ? 'badge bg-success text-black' : 'badge bg-warning text-black'">
                     {{ chat.online ? 'En línea' : 'Activo ' + chat.last_seen }}
                   </span>
-                </h6>
-                <small class="text-muted">{{ chat.empresa }}</small>
+                </small>
                 <br>
                 <small class="text-muted" style="font-size: 10px;">
                   Creado el {{ chat.fecha_chat }} a las {{ chat.hora_chat }} 
@@ -540,11 +540,23 @@ export default {
       }
     },
     async logout() {
-      try {
-        await userService.logout(this.yo.id);
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-      }
+      Swal.fire({   
+        icon: 'warning',
+        title: '¿Estás seguro?',
+        text: '¿Estás seguro de querer cerrar sesión?',
+        showCancelButton: true,
+        confirmButtonText: 'Si',
+        cancelButtonText: 'No',
+        confirmButtonColor: '#3085d6',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          try {
+            userService.logout(this.yo.id);
+          } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+          }
+        }
+      });
     },
     async loadUsers() {
       try {
@@ -814,6 +826,12 @@ export default {
       console.error('Error al cargar contactos iniciales:', error);
     }
     this.startAutoUpdate();
+
+    // Inicializar tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
   },
   beforeUnmount() {
     this.stopAutoUpdate();

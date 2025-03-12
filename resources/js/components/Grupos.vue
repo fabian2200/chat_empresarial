@@ -11,13 +11,13 @@
                             <h5 class="mb-0">Bienvenido</h5>
                             <small class="text-muted">{{ yo?.name }}</small>
                         </div>
-                        <button class="btn btn-outline-success rounded-circle" @click="openNewChat">
+                        <button data-bs-toggle="tooltip" data-bs-placement="bottom" title="Nuevo Grupo" class="btn btn-outline-success rounded-circle" @click="openNewChat">
                             <i class="bi bi-chat-square-dots-fill"></i>
                         </button>
-                        <button class="btn btn-outline-secondary rounded-circle" @click="openProfile">
+                        <button data-bs-toggle="tooltip" data-bs-placement="bottom" title="Configuración" class="btn btn-outline-secondary rounded-circle" @click="openProfile">
                             <i class="bi bi-gear-fill"></i>
                         </button>
-                        <button class="btn btn-outline-danger rounded-circle" @click="logout">
+                        <button data-bs-toggle="tooltip" data-bs-placement="bottom" title="Cerrar Sesión" class="btn btn-outline-danger rounded-circle" @click="logout">
                             <i class="bi bi-box-arrow-right"></i>
                         </button>
                     </div>
@@ -423,6 +423,11 @@ export default {
         await this.loadGroups();
         await this.verificarGrupoActual();
         this.startAutoUpdate();
+
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
     },
     methods: {
         verificarLogin() {
@@ -595,11 +600,18 @@ export default {
             this.modal.show();
         },
         async logout() {
-            try {
-                await userService.logout(this.yo.id);
-            } catch (error) {
-                console.error('Error al cerrar sesión:', error);
-            }
+            Swal.fire({ 
+                icon: 'warning',
+                title: '¿Estás seguro?',
+                text: '¿Estás seguro de querer cerrar sesión?',
+                showCancelButton: true,
+                confirmButtonText: 'Si',
+                cancelButtonText: 'No',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                  userService.logout(this.yo.id);
+                }
+            });
         },
         async eliminarParticipante(id_participante) {
             const id_grupo = localStorage.getItem('id_grupo');
@@ -810,4 +822,10 @@ export default {
     cursor: pointer;
 }
 
+
+.tooltip-inner {
+  background-color: #e0e0e093 !important;
+  color: #575757 !important; 
+  border: 1px solid #333 !important;
+}
 </style>
