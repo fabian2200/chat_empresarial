@@ -83,7 +83,6 @@
                         ref="messageContainer"
                     >
                         <div 
-                            style="position: relative;"
                             v-for="message in messages" 
                             :key="message.id"
                             class="mb-3 d-flex align-items-start"
@@ -93,14 +92,8 @@
                                 :src="baseUrl+'images/'+message.avatar" 
                                 alt="Foto de perfil" 
                                 class="rounded-circle me-2" 
-                                style="background-color: white; padding: 3px;margin-left: 10px ;width: 40px; height: 40px; object-fit: cover; margin-top: 11px;"
+                                style="background-color: white; padding: 3px;margin-left: 10px ;width: 40px; height: 40px; object-fit: cover; margin-top: 15px;"
                             >
-                            <div v-if="message.is_mine" style="position: absolute; right: 21.1pt; top: -2pt; z-index: 99;">
-                                <img :src="baseUrl+'images/mine.png'" style="width: 40px; height: 40px;object-fit: cover;">
-                            </div>
-                            <div v-else style="position: absolute; left: 21.38pt; top: -1.7pt; z-index: 99;">
-                                <img :src="baseUrl+'images/other.png'" style="width: 40px; height: 40px;object-fit: cover;">
-                            </div>
                             <div 
                                 class="message d-inline-block p-2"
                                 :class="[
@@ -108,8 +101,14 @@
                                 {'rounded-bottom-end-0': message.is_mine},
                                 {'rounded-bottom-start-0': !message.is_mine}
                                 ]"
-                                style="max-width: 75%;"
+                                style="max-width: 75%; position: relative;"
                             >
+                                <div v-if="message.is_mine" style="position: absolute; right: -27px; top: 0px; z-index: 99;">
+                                    <img :src="baseUrl+'images/mine.png'" style="width: 30px; height: 50px;">
+                                </div>
+                                <div v-else style="position: absolute; left: -25px; top: 0px; z-index: 99;">
+                                    <img :src="baseUrl+'images/other.png'" style="width: 30px; height: 50px;">
+                                </div>
                                 <small :style="message.is_mine ? 'color: white; font-size: 10px;' : 'color: grey; font-size: 10px;'">
                                    {{ message.usuario }}
                                 </small>
@@ -688,7 +687,7 @@ export default {
     }
 }
 </script>
-<style lang="css">
+<style scoped>
 .cursor-pointer {
     cursor: pointer;
 }

@@ -118,18 +118,11 @@
             ref="messageContainer"
           >
             <div 
-              style="position: relative;"
               v-for="message in messages" 
               :key="message.id"
               class="mb-3"
               :class="{'text-end': message.is_mine}"
             >
-              <div v-if="message.is_mine" style="position: absolute; right: -10.09pt; top: -2pt; z-index: 99;">
-                  <img :src="baseUrl+'images/mine.png'" style="width: 40px; height: 40px;object-fit: cover;">
-              </div>
-              <div v-else style="position: absolute; left: -9.62pt; top: -1.7pt; z-index: 99;">
-                  <img :src="baseUrl+'images/other.png'" style="width: 40px; height: 40px;object-fit: cover;">
-              </div>
               <div 
                 class="message d-inline-block p-3"
                 :class="[
@@ -137,8 +130,14 @@
                   {'rounded-bottom-end-0': message.is_mine},
                   {'rounded-bottom-start-0': !message.is_mine}
                 ]"
-                style="max-width: 75%;"
+                style="max-width: 75%; position: relative;"
               >
+                <div v-if="message.is_mine" style="position: absolute; right: -27px; top: 0px; z-index: 99;">
+                    <img :src="baseUrl+'images/mine.png'" style="width: 30px; height: 50px;">
+                </div>
+                <div v-else style="position: absolute; left: -27px; top: 0px; z-index: 99;">
+                    <img :src="baseUrl+'images/other.png'" style="width: 30px; height: 50px;">
+                </div>
                 <p :style="message.is_mine ? 'color: white;' : 'color: black;'" class="mb-1">{{ message.mensaje }}</p>
                 
                 <!-- Modificar vista previa del archivo -->
@@ -871,6 +870,7 @@ export default {
   position: relative;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22) !important;
+  display: flex;
 }
 
 .message-mine {
