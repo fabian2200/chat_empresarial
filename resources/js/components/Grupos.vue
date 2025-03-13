@@ -6,7 +6,6 @@
             color="#38b4c5"
             :height=100
             :width=200
-            :on-cancel="onCancel"
             :is-full-page="true">
         </loading>
         <div class="row contenido_chat" style="overflow-y: hidden;">
@@ -246,10 +245,9 @@
 
     <input 
       type="file" 
-      ref="fileInput" 
+      ref="fileInputII" 
       class="d-none" 
       @change="handleFileSelected" 
-      multiple
     >
 
     <!-- Modal de vista previa del archivo -->
@@ -552,11 +550,13 @@ export default {
             localStorage.removeItem('id_mio');
         },
         openFileExplorer() {
-            this.$refs.fileInput.click();
+            this.$refs.fileInputII.click();
         },
-        handleFileSelected(event) {
+        async handleFileSelected(event) {
+            console.log(event);
             const files = event.target.files;
             if (files.length > 0) {
+                console.log(files);
                 const maxFileSize = 100 * 1024 * 1024;
                 if (files[0].size > maxFileSize) {
                     Swal.fire({
@@ -566,10 +566,12 @@ export default {
                         showConfirmButton: false,
                         timer: 2500
                     });
+                    this.$refs.fileInputII.value = '';
                     return;
                 }
                 this.archivo = files[0];
-                this.guardarMensaje('archivo');
+                await this.guardarMensaje('archivo');
+                this.$refs.fileInputII.value = '';
             }
         },
         async guardarMensaje(tipo) {

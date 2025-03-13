@@ -6,7 +6,6 @@
         color="#38b4c5"
         :height=100
         :width=200
-        :on-cancel="onCancel"
         :is-full-page="true">
     </loading>
     <div class="row contenido_chat" style="overflow-y: hidden;">
@@ -686,7 +685,7 @@ export default {
     openFileExplorer() {
       this.$refs.fileInput.click();
     },
-    handleFileSelected(event) {
+    async handleFileSelected(event) {
       const files = event.target.files;
       if (files.length > 0) {
         const maxFileSize = 100 * 1024 * 1024;
@@ -699,11 +698,13 @@ export default {
             showConfirmButton: false, 
             timer: 2500
           });
-            return;
-          }
+          this.$refs.fileInput.value = '';
+          return;
+        }
 
-          this.archivo = files[0];
-          this.guardarMensaje('archivo');
+        this.archivo = files[0];
+        await this.guardarMensaje('archivo');
+        this.$refs.fileInput.value = '';
       }
     },
     async guardarMensaje(tipo) {
