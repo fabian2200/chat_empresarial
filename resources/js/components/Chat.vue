@@ -688,8 +688,23 @@ export default {
     },
     handleFileSelected(event) {
       const files = event.target.files;
-      this.archivo = files[0];
-      this.guardarMensaje('archivo');
+      if (files.length > 0) {
+        const maxFileSize = 100 * 1024 * 1024;
+        
+        if (files[0].size > maxFileSize) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Archivo demasiado grande',
+            text: 'El archivo no debe pesar más de 100 MB.',
+            showConfirmButton: false, 
+            timer: 2500
+          });
+            return;
+          }
+
+          this.archivo = files[0];
+          this.guardarMensaje('archivo');
+      }
     },
     async guardarMensaje(tipo) {
       const id_mio = localStorage.getItem('id_mio');
