@@ -62,7 +62,7 @@
                 ></span>
               </div>
               <div class="ms-3 flex-grow-1" style="position: relative;">
-                <small v-if="chat.mensajes_sin_leer > 0" class="badge bg-danger ms-2" style="margin-bottom: 10px; margin-left: 0px !important; position: absolute; top: 0; right: 0; width: 25pt; height: 25pt; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <small v-if="chat.mensajes_sin_leer > 0" class="badge bg-danger ms-2 numero_mensajes">
                   <i style="margin-right: 3px;" class="bi bi-chat-dots"></i> {{ chat.mensajes_sin_leer }}
                 </small>
                 <small class="text-muted">{{ chat.empresa }}</small>
@@ -118,11 +118,18 @@
             ref="messageContainer"
           >
             <div 
+              style="position: relative;"
               v-for="message in messages" 
               :key="message.id"
               class="mb-3"
               :class="{'text-end': message.is_mine}"
             >
+              <div v-if="message.is_mine" style="position: absolute; right: -10.09pt; top: -2pt; z-index: 99;">
+                  <img :src="baseUrl+'images/mine.png'" style="width: 40px; height: 40px;object-fit: cover;">
+              </div>
+              <div v-else style="position: absolute; left: -9.62pt; top: -1.7pt; z-index: 99;">
+                  <img :src="baseUrl+'images/other.png'" style="width: 40px; height: 40px;object-fit: cover;">
+              </div>
               <div 
                 class="message d-inline-block p-3"
                 :class="[
@@ -839,7 +846,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 /* Estilos personalizados */
 .cursor-pointer {
   cursor: pointer;
@@ -867,12 +874,14 @@ export default {
 }
 
 .message-mine {
-  border-radius: 10px 10px 0px 10px !important;
+  margin-right: 1.5%;
+  border-radius: 15px 0px 15px 15px !important;
   background: linear-gradient(135deg, #007bff, #0056b3);
 }
 
 .message-other {
-  border-radius: 10px 10px 10px 0px !important;
+  margin-left: 1.5%;
+  border-radius: 0px 15px 15px 15px !important;
   background-color: rgb(170, 198, 252);
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
@@ -936,5 +945,20 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 14px;
+}
+
+.numero_mensajes {
+  margin-bottom: 10px;
+  margin-left: 0px !important;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 24pt;
+  height: 24pt;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
 }
 </style> 

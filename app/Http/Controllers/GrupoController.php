@@ -139,6 +139,7 @@ class GrupoController extends Controller
 
             $usuario = DB::table('users')->where('id', $mensaje->id_crea)->first();
             $mensaje->usuario = $usuario->name . ' - ' . $usuario->empresa;
+            $mensaje->avatar = $usuario->avatar;
         }
 
 

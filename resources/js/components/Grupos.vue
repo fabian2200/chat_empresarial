@@ -83,11 +83,24 @@
                         ref="messageContainer"
                     >
                         <div 
+                            style="position: relative;"
                             v-for="message in messages" 
                             :key="message.id"
-                            class="mb-3"
-                            :class="{'text-end': message.is_mine}"
+                            class="mb-3 d-flex align-items-start"
+                            :class="{'flex-row-reverse': message.is_mine}"
                         >
+                            <img 
+                                :src="baseUrl+'images/'+message.avatar" 
+                                alt="Foto de perfil" 
+                                class="rounded-circle me-2" 
+                                style="background-color: white; padding: 3px;margin-left: 10px ;width: 40px; height: 40px; object-fit: cover; margin-top: 11px;"
+                            >
+                            <div v-if="message.is_mine" style="position: absolute; right: 21.1pt; top: -2pt; z-index: 99;">
+                                <img :src="baseUrl+'images/mine.png'" style="width: 40px; height: 40px;object-fit: cover;">
+                            </div>
+                            <div v-else style="position: absolute; left: 21.38pt; top: -1.7pt; z-index: 99;">
+                                <img :src="baseUrl+'images/other.png'" style="width: 40px; height: 40px;object-fit: cover;">
+                            </div>
                             <div 
                                 class="message d-inline-block p-2"
                                 :class="[
@@ -702,12 +715,12 @@ export default {
 }
 
 .message-mine {
-    border-radius: 10px 10px 0px 10px !important;
+    border-radius: 15px 0px 15px 15px !important;
     background: linear-gradient(135deg, #007bff, #0056b3);
 }
 
 .message-other {
-    border-radius: 10px 10px 10px 0px !important;
+    border-radius: 0px 15px 15px 15px !important;
     background-color: rgb(170, 198, 252);
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
