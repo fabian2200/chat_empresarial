@@ -80,11 +80,23 @@ export default {
             profileModal: null
         }
     },
-    mounted() {
-        this.verificarRuta();
-        this.verificarPrimeraVez();
+    async mounted() {
+        await this.verificarLogin();
+        if (!this.verificarLogin()) {
+            this.$router.push('/login');
+        }else {
+            this.verificarRuta();
+            this.verificarPrimeraVez();
+        }
     },
     methods: {
+        verificarLogin() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                return false;
+            }
+            return true;
+        },
         verificarPrimeraVez() {
             this.usuario = JSON.parse(localStorage.getItem('user'));
             if(this.usuario.primera_vez === 0) {

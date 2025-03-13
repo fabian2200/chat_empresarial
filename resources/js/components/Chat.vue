@@ -1,5 +1,14 @@
 <template>
   <div class="container-fluid h-100">
+    <loading :active="isLoading" 
+        :can-cancel="true"
+        loader="bars" 
+        color="#38b4c5"
+        :height=100
+        :width=200
+        :on-cancel="onCancel"
+        :is-full-page="true">
+    </loading>
     <div class="row contenido_chat" style="overflow-y: hidden;">
       <!-- Lista de contactos (Sidebar) -->
       <div class="col-4 col-md-3 bg-light p-0" style="background-color: #fdfdfd !important;">
@@ -154,6 +163,8 @@
                     </div>
                   </div>
                 </div>
+
+                <small v-if="message.tiene_archivo === 1" :class="message.is_mine ? 'text-white-50 peso_derecha' : 'text-muted peso_izquierda'">Peso: {{ message.peso }} <br></small>
 
                 <small :class="message.is_mine ? 'text-white-50' : 'text-muted'" style="font-size: 10px;">
                   {{ message.fecha }} A las {{ message.hora }}
@@ -483,10 +494,13 @@ import { userService, chatService } from '../services/api'
 import Swal from 'sweetalert2'
 import miPerfil from './miPerfil.vue'
 import { baseUrl } from '../baseUrl';
+import Loading from 'vue3-loading-overlay';
+import 'vue3-loading-overlay/dist/vue3-loading-overlay.css';
 
 export default {
   components: {
-    miPerfil
+    miPerfil,
+    Loading
   },
   name: 'Chat',
   data() {
@@ -529,7 +543,8 @@ export default {
       broadcastFile: null,
       broadcastSearchQuery: '',
       availableUsersDifusion: [],
-      baseUrl: baseUrl
+      baseUrl: baseUrl,
+      isLoading: false
     }
   },
   methods: {
@@ -682,7 +697,32 @@ export default {
       const mensaje = this.newMessage;
       let response;
       if (tipo == 'archivo') {
-        response = await chatService.guardarMensaje(id_mio, id_chat, mensaje, tipo, this.archivo);
+        this.isLoading = true;
+
+        try { 
+          response = await chatService.guardarMensaje(id_mio, id_chat, mensaje, tipo, this.archivo);
+          if (response.success) {
+            this.isLoading = false;
+          } else {
+            this.isLoading = false;
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: response.message,
+              showConfirmButton: false, 
+              timer: 2500
+            });
+          }
+        } catch (error) {
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: error.response.statusText == 'Content Too Large' ? 'El archivo es demasiado grande' : error.response.statusText,
+            showConfirmButton: false, 
+            timer: 2500
+          });
+        }       
       } else {
         response = await chatService.guardarMensaje(id_mio, id_chat, mensaje, tipo, null);
       }
@@ -802,8 +842,9 @@ export default {
     verificarLogin() {
       const user = localStorage.getItem('user');
       if (!user) {
-        this.$router.push('/login');
+        return false;
       }
+      return true;
     },
     searchUsers() {
       this.availableUsers = this.users.filter(user => user.name.toLowerCase().includes(this.newChatSearchQuery.toLowerCase()));
@@ -822,22 +863,26 @@ export default {
     }
   },
   async mounted() {
-    this.verificarLogin();
-    await this.seleccionarMiUsuario();
-    await this.loadChats();
-    this.verificarChatActual();
-    try {
-      const users = await userService.getUsers();
-    } catch (error) {
-      console.error('Error al cargar contactos iniciales:', error);
-    }
-    this.startAutoUpdate();
+    await this.verificarLogin();
+    if (!this.verificarLogin()) {
+      this.$router.push('/login');
+    } else {
+      await this.seleccionarMiUsuario();
+      await this.loadChats();
+      this.verificarChatActual();
+      try {
+        const users = await userService.getUsers();
+      } catch (error) {
+        console.error('Error al cargar contactos iniciales:', error);
+      }
+      this.startAutoUpdate();
 
-    // Inicializar tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+      // Inicializar tooltips
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    }
   },
   beforeUnmount() {
     this.stopAutoUpdate();
@@ -960,5 +1005,17 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 11px;
+}
+
+.peso_derecha {
+  width: 100%; 
+  display: block; 
+  text-align: right;
+}
+
+.peso_izquierda {
+  width: 100%; 
+  display: block; 
+  text-align: left;
 }
 </style> 

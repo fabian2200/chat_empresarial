@@ -92,11 +92,19 @@ class GrupoController extends Controller
         $tipo = $request->tipo;
 
         if($tipo == 'archivo'){
-            $archivo = $request->archivo;
-            $nombre_archivo = time() . '_' . $archivo->getClientOriginalName();
-            $ruta_archivo = $archivo->move(public_path('archivos'), $nombre_archivo);
-            $mensaje = $nombre_archivo;
-            $tipo_archivo = $archivo->getClientOriginalExtension();
+            try {
+                $peso_archivo = $this->convertirTamaño($request->archivo->getSize());
+                $archivo = $request->archivo;
+                $nombre_archivo = time() . '_' . $archivo->getClientOriginalName();
+                $ruta_archivo = $archivo->move(public_path('archivos'), $nombre_archivo);
+                $mensaje = $nombre_archivo;
+                $tipo_archivo = $archivo->getClientOriginalExtension();
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al guardar el archivo: ' . $e->getMessage()
+                ], 200);
+            }
         }
         
         $fecha = Carbon::now()->setTimezone('America/Bogota')->format('Y-m-d');
@@ -109,7 +117,8 @@ class GrupoController extends Controller
             'tiene_archivo' => $tipo == 'archivo' ? 1 : 0,
             'tipo_archivo' =>  $tipo == 'archivo' ? $tipo_archivo : "no",
             'fecha' => $fecha,
-            'hora' => $hora
+            'hora' => $hora,
+            'peso' => $tipo == 'archivo' ? $peso_archivo : 0
         ]);
 
         if($mensaje){
@@ -122,6 +131,22 @@ class GrupoController extends Controller
                 'success' => false,
                 'message' => 'Error al guardar mensaje'
             ]);
+        }
+    }
+
+    function convertirTamaño($bytes) {
+        $kb = 1024;
+        $mb = 1024 * $kb;
+        $gb = 1024 * $mb;
+    
+        if ($bytes < $kb) {
+            return $bytes . ' B';
+        } elseif ($bytes < $mb) {
+            return round($bytes / $kb, 2) . ' KB';
+        } elseif ($bytes < $gb) {
+            return round($bytes / $mb, 2) . ' MB';
+        } else {
+            return round($bytes / $gb, 2) . ' GB';
         }
     }
     

@@ -17,7 +17,7 @@
             align-items: center;
             justify-content: center;
             background: linear-gradient(rgba(20, 26, 99, 0.815), rgba(23, 68, 134, 0.815)),
-                        url('images/photo-1497366754035-f200968a6e72.png') no-repeat center center;
+                        url('{{ url('images/photo-1497366754035-f200968a6e72.png') }}') no-repeat center center;
             background-size: cover;
             background-attachment: fixed;
             padding: 20px;

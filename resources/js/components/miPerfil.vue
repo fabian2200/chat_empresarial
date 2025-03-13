@@ -123,13 +123,22 @@ export default {
             isLoading: false
         }
     },
-    created() {
-        this.misDatos();
-    },
-    mounted() {
-        this.misDatos();
+    async mounted() {
+        await this.verificarLogin();
+        if (!this.verificarLogin()) {
+            this.$router.push('/login');
+        }else {
+            this.misDatos();
+        }
     },
     methods: {
+        verificarLogin() {
+            const user = localStorage.getItem('user');
+            if (!user) {
+                return false;
+            }
+            return true;
+        },
         async misDatos() {
             this.yo = JSON.parse(localStorage.getItem('user'));
 

@@ -160,10 +160,18 @@ class ChatController extends Controller
                 mkdir(public_path('archivos'), 0777, true);
             }
             
-            $archivo->move(public_path('archivos'), $nombreArchivo);
-            $rutaArchivo = 'archivos/' . $nombreArchivo;
-            $tipoArchivo = $archivo->getClientOriginalExtension();
-            $mensaje = $nombreArchivo;
+            try {
+                $pesoArchivo = $this->convertirTamaño($archivo->getSize());
+                $archivo->move(public_path('archivos'), $nombreArchivo);
+                $rutaArchivo = 'archivos/' . $nombreArchivo;
+                $tipoArchivo = $archivo->getClientOriginalExtension();
+                $mensaje = $nombreArchivo;
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al guardar el archivo: ' . $e->getMessage()
+                ], 200);
+            }
         }
 
         $fecha = Carbon::now('America/Bogota')->format('Y-m-d');
@@ -176,7 +184,8 @@ class ChatController extends Controller
             'tiene_archivo' => $tipo == 'archivo' ? 1 : 0,
             'fecha' => $fecha,
             'hora' => $hora,
-            'tipo_archivo' => $tipo == 'archivo' ? $tipoArchivo : 'no'
+            'tipo_archivo' => $tipo == 'archivo' ? $tipoArchivo : 'no',
+            'peso' => $tipo == 'archivo' ? $pesoArchivo : 0
         ]);
 
         if ($mensaje) {
@@ -191,6 +200,22 @@ class ChatController extends Controller
             ], 200);
         }
         
+    }
+
+    function convertirTamaño($bytes) {
+        $kb = 1024;
+        $mb = 1024 * $kb;
+        $gb = 1024 * $mb;
+    
+        if ($bytes < $kb) {
+            return $bytes . ' B';
+        } elseif ($bytes < $mb) {
+            return round($bytes / $kb, 2) . ' KB';
+        } elseif ($bytes < $gb) {
+            return round($bytes / $mb, 2) . ' MB';
+        } else {
+            return round($bytes / $gb, 2) . ' GB';
+        }
     }
 
     public function obtenerMensajesChat(Request $request)

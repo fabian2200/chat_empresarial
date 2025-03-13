@@ -1,5 +1,14 @@
 <template>
     <div class="container-fluid h-100">
+        <loading :active="isLoading" 
+            :can-cancel="true"
+            loader="bars" 
+            color="#38b4c5"
+            :height=100
+            :width=200
+            :on-cancel="onCancel"
+            :is-full-page="true">
+        </loading>
         <div class="row contenido_chat" style="overflow-y: hidden;">
             <!-- Lista de contactos (Sidebar) -->
             <div class="col-4 col-md-3 bg-light p-0" style="background-color: #fdfdfd !important;">
@@ -116,18 +125,20 @@
                                 
                                 <!-- Modificar vista previa del archivo -->
                                 <div v-if="message.tiene_archivo === 1" class="file-preview mb-2">
-                                <div 
-                                    class="d-flex align-items-center p-2 rounded cursor-pointer" 
-                                    :class="message.is_mine ? 'bg-white bg-opacity-25' : 'bg-light'"
-                                    @click="openFileModal(message.mensaje)"
-                                >
-                                    <i class="bi bi-file-earmark me-2" style="font-size: 1.5rem;"></i>
-                                    <div class="file-info">
-                                    <div :class="message.is_mine ? 'text-white' : 'text-dark'">{{ message.archivo }}</div>
-                                    <small :class="message.is_mine ? 'text-white-50' : 'text-muted'">Clic para ver</small>
+                                    <div 
+                                        class="d-flex align-items-center p-2 rounded cursor-pointer" 
+                                        :class="message.is_mine ? 'bg-white bg-opacity-25' : 'bg-light'"
+                                        @click="openFileModal(message.mensaje)"
+                                    >
+                                        <i class="bi bi-file-earmark me-2" style="font-size: 1.5rem;"></i>
+                                        <div class="file-info">
+                                        <div :class="message.is_mine ? 'text-white' : 'text-dark'">{{ message.archivo }}</div>
+                                        <small :class="message.is_mine ? 'text-white-50' : 'text-muted'">Clic para ver</small>
+                                        </div>
                                     </div>
                                 </div>
-                                </div>
+
+                                <small v-if="message.tiene_archivo === 1" :class="message.is_mine ? 'text-white-50 peso_derecha' : 'text-muted peso_izquierda'">Peso: {{ message.peso }} <br></small>
 
                                 <small :class="message.is_mine ? 'text-white-50' : 'text-muted'" style="font-size: 10px;">
                                 {{ message.fecha }} A las {{ message.hora }}
@@ -400,10 +411,13 @@ import Swal from 'sweetalert2'
 import * as bootstrap from 'bootstrap'
 import miPerfil from './miPerfil.vue'
 import { baseUrl } from '../baseUrl';
+import Loading from 'vue3-loading-overlay';
+import 'vue3-loading-overlay/dist/vue3-loading-overlay.css';
 
 export default {
     components: {
-        miPerfil
+        miPerfil,
+        Loading
     },
     data() {
         return {
@@ -427,26 +441,31 @@ export default {
             participantesNoAgregados: [],
             groupMembersAgregar: [],
             profileModal: null,
-            baseUrl: baseUrl
+            baseUrl: baseUrl,
+            isLoading: false
         }
     },
     async mounted() {
-        this.verificarLogin();
-        await this.loadGroups();
-        await this.verificarGrupoActual();
-        this.startAutoUpdate();
+        if(!this.verificarLogin()){
+            this.$router.push('/login');
+        }else {
+            await this.loadGroups();
+            await this.verificarGrupoActual();
+            this.startAutoUpdate();
 
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
     },
     methods: {
         verificarLogin() {
             const user = localStorage.getItem('user');
             if (!user) {
-                this.$router.push('/login');
+                return false;
             }
+            return true;
         },
         verificarGrupoActual() {
             const id_grupo = localStorage.getItem('id_grupo');
@@ -546,7 +565,31 @@ export default {
             const mensaje = this.newMessage;
             let response;
             if (tipo == 'archivo') {
-                response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, this.archivo);
+                this.isLoading = true;
+                try {
+                    response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, this.archivo);
+                    if (response.success) {
+                        this.isLoading = false;
+                    } else {
+                        this.isLoading = false;
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: response.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                } catch (error) {
+                    this.isLoading = false;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: error.response.statusText == 'Content Too Large' ? 'El archivo es demasiado grande' : error.response.statusText,
+                        showConfirmButton: false,
+                        timer: 2500
+                    });
+                }
             } else {
                 response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, null);
             }
@@ -839,5 +882,17 @@ export default {
   background-color: #e0e0e093 !important;
   color: #575757 !important; 
   border: 1px solid #333 !important;
+}
+
+.peso_derecha {
+  width: 100%; 
+  display: block; 
+  text-align: right;
+}
+
+.peso_izquierda {
+  width: 100%; 
+  display: block; 
+  text-align: left;
 }
 </style>
