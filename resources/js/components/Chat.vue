@@ -35,13 +35,16 @@
             <span class="input-group-text bg-white border-end-0">
               <i class="bi bi-search"></i>
             </span>
-            <input 
-              type="text" 
-              class="form-control border-start-0" 
-              placeholder="Buscar contactos..."
-              v-model="searchQuery"
-              @keyup="buscarContactosChats"
-            >
+            <form autocomplete="off" style="flex-grow: 1;">
+              <input 
+                autocomplete="off"
+                type="text" 
+                class="form-control border-start-0" 
+                placeholder="Buscar contactos..."
+                v-model="searchQuery"
+                @keyup="buscarContactosChats"
+              >
+            </form>
           </div>
         </div>
 
@@ -182,14 +185,15 @@
               <button style="padding: 0px !important; border-color: #f1ede6 !important; background-color: #f1ede6 !important;" class="btn btn-light" @click="openFileExplorer">
                 <i class="bi bi-plus-lg" style="color: grey; font-size: 1.5rem;"></i>
               </button>
-              <input
-                style="border: 1px solid #c3c3c3;"
-                type="text" 
-                class="form-control mx-2" 
-                placeholder="Escribe un mensaje..."
-                v-model="newMessage"
-                @keyup.enter="guardarMensaje('texto')"
-              >
+              <form @submit.prevent="guardarMensaje('texto')" autocomplete="off" style="flex-grow: 1;">
+                <input
+                  style="border: 1px solid #c3c3c3; width: 98%;"
+                  type="text" 
+                  class="form-control mx-2" 
+                  placeholder="Escribe un mensaje..."
+                  v-model="newMessage"
+                >
+              </form>
               <button 
                 class="btn btn-primary rounded-circle"
                 @click="guardarMensaje('texto')"
@@ -246,12 +250,14 @@
               <span class="input-group-text bg-white">
                 <i class="bi bi-search"></i>
               </span>
-              <input 
-                type="text" 
-                class="form-control" 
-                placeholder="Buscar usuarios..."
-                v-model="newChatSearchQuery"
-              >
+              <form autocomplete="off" style="flex-grow: 1;">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Buscar usuarios..."
+                  v-model="newChatSearchQuery"
+                >
+              </form>
             </div>
 
             <!-- Lista de usuarios -->
@@ -395,13 +401,15 @@
               <span class="input-group-text bg-white">
                 <i class="bi bi-search"></i>
               </span>
-              <input 
-                type="text" 
-                class="form-control" 
-                placeholder="Buscar usuarios..."
-                v-model="broadcastSearchQuery"
-                @keyup="searchUsersDifusion"
-              >
+              <form autocomplete="off" style="flex-grow: 1;">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Buscar usuarios..."
+                  v-model="broadcastSearchQuery"
+                  @keyup="searchUsersDifusion"
+                >
+              </form>
             </div>
 
             <!-- Lista de usuarios seleccionables -->

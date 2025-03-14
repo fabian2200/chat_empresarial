@@ -9,7 +9,7 @@
             :on-cancel="onCancel"
             :is-full-page="true">
         </loading>
-        <form @submit.prevent="updateProfile">
+        <form @submit.prevent="updateProfile" autocomplete="off">
             <div class="text-center mb-3 mt-3" style="position: relative;">
                 <img 
                     style="border: 2px solid #e7e7e7 !important; padding: 5px;"
@@ -47,6 +47,8 @@
                 <label class="form-label">Email:</label>
                 <input 
                     type="email" 
+                    autocomplete="off"
+                    name="email2"
                     class="form-control"
                     v-model="profileData.email"
                     required
@@ -57,6 +59,8 @@
                 <label class="form-label">Contraseña:</label>
                 <input 
                     type="password" 
+                    autocomplete="off"
+                    name="password2"
                     class="form-control"
                     v-model="profileData.password"
                     placeholder="Dejar en blanco para mantener la actual"

@@ -33,8 +33,14 @@
                         <span class="input-group-text bg-white border-end-0">
                             <i class="bi bi-search"></i>
                         </span>
-                        <input type="text" class="form-control border-start-0" placeholder="Buscar grupos..."
-                            v-model="searchQuery">
+                        <form autocomplete="off" style="flex-grow: 1;">
+                            <input 
+                                type="text" 
+                                class="form-control border-start-0" 
+                                placeholder="Buscar grupos..."
+                                v-model="searchQuery"
+                            >
+                        </form>
                     </div>
                 </div>
                 <div class="contacts-list overflow-auto" style="height: calc(100vh - 180px);">
@@ -155,14 +161,15 @@
                         <button style="padding: 0px !important; border-color: #f1ede6 !important; background-color: #f1ede6 !important;" class="btn btn-light" @click="openFileExplorer">
                             <i class="bi bi-plus-lg" style="color: grey; font-size: 1.5rem;"></i>
                         </button>
-                        <input
-                            style="border: 1px solid #c3c3c3;"
-                            type="text" 
-                            class="form-control mx-2" 
-                            placeholder="Escribe un mensaje..."
-                            v-model="newMessage"
-                            @keyup.enter="guardarMensaje('texto')"
-                        >
+                        <form autocomplete="off" @submit.prevent="guardarMensaje('texto')" style="flex-grow: 1;">
+                            <input
+                                style="border: 1px solid #c3c3c3; width: 98%;"
+                                type="text" 
+                                class="form-control mx-2" 
+                                placeholder="Escribe un mensaje..."
+                                v-model="newMessage"
+                            >
+                        </form>
                         <button 
                             class="btn btn-primary rounded-circle"
                             @click="guardarMensaje('texto')"
@@ -201,8 +208,10 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="groupName" style="font-weight: bold;" class="form-label">Nombre del Grupo</label>
-                        <input type="text" class="form-control" id="groupName" v-model="groupName">
+                        <form autocomplete="off" style="flex-grow: 1;">
+                            <label for="groupName" style="font-weight: bold;" class="form-label">Nombre del Grupo</label>
+                            <input type="text" class="form-control" id="groupName" v-model="groupName">
+                        </form>
                     </div>
                     <div class="mb-3">
                         <label for="groupMembers" style="font-weight: bold;" class="form-label">Miembros del Grupo</label>
