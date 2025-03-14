@@ -10,7 +10,7 @@
         </loading>
         <div class="row contenido_chat" style="overflow-y: hidden;">
             <!-- Lista de contactos (Sidebar) -->
-            <div class="col-4 col-md-3 bg-light p-0" style="background-color: #fdfdfd !important;">
+            <div ref="listaContactosContainer" :class="!esDispositivoMovil ? 'col-4 col-md-3 bg-light p-0' : 'col-12 bg-light p-0'" style="background-color: #fdfdfd !important;">
                 <!-- Barra de búsqueda y nuevo chat -->
                 <div class="p-3 border-bottom">
                     <div class="d-flex gap-2 mb-3 justify-content-end">
@@ -33,7 +33,7 @@
                         <span class="input-group-text bg-white border-end-0">
                             <i class="bi bi-search"></i>
                         </span>
-                        <form autocomplete="off" style="flex-grow: 1;">
+                        <form autocomplete="off" :style="!esDispositivoMovil ? 'flex-grow: 1;' : 'flex-grow: 0; width: 85%;'">
                             <input 
                                 type="text" 
                                 class="form-control border-start-0" 
@@ -43,13 +43,13 @@
                         </form>
                     </div>
                 </div>
-                <div class="contacts-list overflow-auto" style="height: calc(100vh - 180px);">
+                <div class="contacts-list overflow-auto" :style="esDispositivoMovil ? 'height: calc(100vh - 25vh); overflow-x: hidden !important;' : 'height: calc(100vh - 180px);'">
                     <div 
                         v-for="group in groupsFiltered" 
                         :key="group.id"
                         class="contact-item p-2  cursor-pointer"
                         :class="{'active': groupSelected?.id === group.id}"
-                        @click="selectGroup(group)"
+                        @click="selectGroup(group) ; mostrarChatContainer()"
                     >
                         <div class="d-flex align-items-center elemento">
                             <div class="ms-3" style="width: calc(100% - 1.5rem); position: relative;">
@@ -78,7 +78,7 @@
             </div>
 
             <!-- Área del chat -->
-            <div class="col-8 col-md-9 p-0 h-100">
+            <div ref="chatContainer" :class="!esDispositivoMovil ? 'col-8 col-md-9 p-0 h-100' : 'col-12 p-0 h-100'" :style="esDispositivoMovil ? 'display: none;' : 'display: block;'">
                 <template v-if="groupSelected">
                     <!-- Encabezado del chat -->
                     <div class="chat-header p-3 border-bottom bg-white" style="background-color: #e1e1e1 !important;">
@@ -94,9 +94,14 @@
                                     Creado el {{ groupSelected.detalle_grupo.fecha }} a las {{ groupSelected.detalle_grupo.hora }} 
                                 </small>                            
                             </div>
-                            <div class="ms-auto">
-                                <button class="btn btn-danger me-2" @click="cerrarChat">
-                                    <i class="bi bi-x-lg text-light"></i> Cerrar Chat
+                            <div v-if="esDispositivoMovil" style="position: absolute; right: 2vh; top: 3vh;">
+                                <button style="width: 35px; font-size: 9px;" class="btn btn-danger me-2" @click="cerrarChat(); ocultarChatContainer()">
+                                <i class="bi bi-x-lg text-light"></i>
+                                </button>
+                            </div>
+                            <div v-else class="ms-auto">
+                                <button class="btn btn-warning me-2" @click="cerrarChat();">
+                                <i class="bi bi-x-lg text-light"></i> Cerrar Chat
                                 </button>
                             </div>
                         </div>
@@ -104,7 +109,7 @@
                     <!-- Área de mensajes -->
                     <div 
                         class="chat-messages p-3 overflow-auto"
-                        style="height: calc(100vh - 186px);"
+                        :style="esDispositivoMovil ? 'height: calc(100vh - 20vh); overflow-x: hidden !important;' : 'height: calc(100vh - 186px);'"
                         ref="messageContainer"
                     >
                         <div 
@@ -172,7 +177,7 @@
                         <button style="padding: 0px !important; border-color: #f1ede6 !important; background-color: #f1ede6 !important;" class="btn btn-light" @click="openFileExplorer">
                             <i class="bi bi-plus-lg" style="color: grey; font-size: 1.5rem;"></i>
                         </button>
-                        <form autocomplete="off" @submit.prevent="guardarMensaje('texto')" style="flex-grow: 1;">
+                        <form autocomplete="off" @submit.prevent="guardarMensaje('texto')" :style="!esDispositivoMovil ? 'flex-grow: 1;' : 'flex-grow: 0; width: 72%; margin-right: 10px;'">
                             <input
                                 style="border: 1px solid #c3c3c3; width: 98%;"
                                 type="text" 
@@ -460,13 +465,15 @@ export default {
             groupMembersAgregar: [],
             profileModal: null,
             baseUrl: baseUrl,
-            isLoading: false
+            isLoading: false,
+            esDispositivoMovil: false,
         }
     },
     async mounted() {
         if(!this.verificarLogin()){
             this.$router.push('/login');
         }else {
+            await this.verificarSiEsDispositivoMovil();
             await this.loadGroups();
             await this.verificarGrupoActual();
             this.startAutoUpdate();
@@ -758,7 +765,30 @@ export default {
         },
         closeProfile() {
             this.profileModal.hide();
-        }
+        },
+        verificarSiEsDispositivoMovil() {
+            const userAgent = navigator.userAgent;
+            var test = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+            if (test) {
+                this.esDispositivoMovil = true;
+            } else {
+                this.esDispositivoMovil = false;
+            }
+        },
+        mostrarChatContainer() {
+            if (this.esDispositivoMovil) {
+                console.log('Es un dispositivo móvil');
+                this.$refs.chatContainer.style.display = 'block'; 
+                this.$refs.listaContactosContainer.style.display = 'none';
+            }
+        },
+        ocultarChatContainer() {
+            if (this.esDispositivoMovil) {
+                console.log('Es un dispositivo móvil');
+                this.$refs.chatContainer.style.display = 'none'; 
+                this.$refs.listaContactosContainer.style.display = 'block';
+            }
+        },
     },
     beforeUnmount() {
         this.stopAutoUpdate();

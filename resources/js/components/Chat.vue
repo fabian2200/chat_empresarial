@@ -10,7 +10,7 @@
     </loading>
     <div class="row contenido_chat" style="overflow-y: hidden;">
       <!-- Lista de contactos (Sidebar) -->
-      <div class="col-4 col-md-3 bg-light p-0" style="background-color: #fdfdfd !important;">
+      <div ref="listaContactosContainer" :class="!esDispositivoMovil ? 'col-3 bg-light p-0' : 'col-12 bg-light p-0'" style="background-color: #fdfdfd !important;">
         <!-- Barra de búsqueda y nuevo chat -->
         <div class="p-3 border-bottom">
           <div class="d-flex gap-2 mb-3 justify-content-end">
@@ -35,7 +35,7 @@
             <span class="input-group-text bg-white border-end-0">
               <i class="bi bi-search"></i>
             </span>
-            <form autocomplete="off" style="flex-grow: 1;">
+            <form autocomplete="off" :style="!esDispositivoMovil ? 'flex-grow: 1;' : 'flex-grow: 0; width: 85%;'">
               <input 
                 autocomplete="off"
                 type="text" 
@@ -49,13 +49,13 @@
         </div>
 
         <!-- Lista de contactos -->
-        <div class="contacts-list overflow-auto" style="height: calc(100vh - 180px);">
+        <div class="contacts-list overflow-auto" :style="esDispositivoMovil ? 'height: calc(100vh - 25vh); overflow-x: hidden !important;' : 'height: calc(100vh - 180px);'">
           <div 
             v-for="chat in chatsFiltrados" 
             :key="chat.id"
             class="contact-item p-2  cursor-pointer"
             :class="{'active': selectedChat?.id === chat.id}"
-            @click="seleccionarChat(chat)"
+            @click="seleccionarChat(chat); mostrarChatContainer()"
           >
             <div class="d-flex align-items-center elemento">
               <div class="position-relative">
@@ -96,7 +96,7 @@
       </div>
 
       <!-- Área del chat -->
-      <div class="col-8 col-md-9 p-0 h-100">
+      <div ref="chatContainer" :class="!esDispositivoMovil ? 'col-9 p-0 h-100' : 'col-12 p-0 h-100'" :style="esDispositivoMovil ? 'display: none;' : 'display: block;'">
         <template v-if="selectedChat">
           <!-- Encabezado del chat -->
           <div class="chat-header p-3 border-bottom bg-white" style="background-color: #e1e1e1 !important;">
@@ -114,8 +114,13 @@
                   {{ selectedChat.empresa }}
                 </small>
               </div>
-              <div class="ms-auto">
-                <button class="btn btn-warning me-2" @click="cerrarChat">
+              <div v-if="esDispositivoMovil" style="position: absolute; right: 2vh; top: 3vh;">
+                <button style="width: 35px; font-size: 9px;" class="btn btn-danger me-2" @click="cerrarChat(); ocultarChatContainer()">
+                  <i class="bi bi-x-lg text-light"></i>
+                </button>
+              </div>
+              <div v-else class="ms-auto">
+                <button class="btn btn-warning me-2" @click="cerrarChat();">
                   <i class="bi bi-x-lg text-light"></i> Cerrar Chat
                 </button>
               </div>
@@ -125,7 +130,7 @@
           <!-- Área de mensajes -->
           <div 
             class="chat-messages p-3 overflow-auto"
-            style="height: calc(100vh - 186px);"
+            :style="esDispositivoMovil ? 'height: calc(100vh - 25vh); overflow-x: hidden !important;' : 'height: calc(100vh - 186px);'"
             ref="messageContainer"
           >
             <div 
@@ -185,7 +190,7 @@
               <button style="padding: 0px !important; border-color: #f1ede6 !important; background-color: #f1ede6 !important;" class="btn btn-light" @click="openFileExplorer">
                 <i class="bi bi-plus-lg" style="color: grey; font-size: 1.5rem;"></i>
               </button>
-              <form @submit.prevent="guardarMensaje('texto')" autocomplete="off" style="flex-grow: 1;">
+              <form @submit.prevent="guardarMensaje('texto')" autocomplete="off" :style="esDispositivoMovil ? 'flex-grow: 0; width: 72%; margin-right: 10px;' : 'flex-grow: 1;'">
                 <input
                   style="border: 1px solid #c3c3c3; width: 98%;"
                   type="text" 
@@ -217,7 +222,6 @@
         </div>
       </div>
     </div>
-
     <!-- Input file oculto para el explorador de archivos -->
     <input 
       type="file" 
@@ -551,7 +555,8 @@ export default {
       broadcastSearchQuery: '',
       availableUsersDifusion: [],
       baseUrl: baseUrl,
-      isLoading: false
+      isLoading: false,
+      esDispositivoMovil: false
     }
   },
   methods: {
@@ -872,7 +877,30 @@ export default {
     },
     searchUsers() {
       this.availableUsers = this.users.filter(user => user.name.toLowerCase().includes(this.newChatSearchQuery.toLowerCase()));
-    }
+    },
+    verificarSiEsDispositivoMovil() {
+      const userAgent = navigator.userAgent;
+      var test = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      if (test) {
+        this.esDispositivoMovil = true;
+      } else {
+        this.esDispositivoMovil = false;
+      }
+    },
+    mostrarChatContainer() {
+      if (this.esDispositivoMovil) {
+        console.log('Es un dispositivo móvil');
+        this.$refs.chatContainer.style.display = 'block'; 
+        this.$refs.listaContactosContainer.style.display = 'none';
+      }
+    },
+    ocultarChatContainer() {
+      if (this.esDispositivoMovil) {
+        console.log('Es un dispositivo móvil');
+        this.$refs.chatContainer.style.display = 'none'; 
+        this.$refs.listaContactosContainer.style.display = 'block';
+      }
+    },
   },
   watch: {
     newChatSearchQuery: {
@@ -891,6 +919,7 @@ export default {
     if (!this.verificarLogin()) {
       this.$router.push('/login');
     } else {
+      await this.verificarSiEsDispositivoMovil();
       await this.seleccionarMiUsuario();
       await this.loadChats();
       this.verificarChatActual();
