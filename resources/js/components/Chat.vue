@@ -1022,9 +1022,6 @@ export default {
   position: absolute;
   top: 0px;
   right: 0px;
-  width: 24pt;
-  height: 24pt;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;

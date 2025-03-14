@@ -60,7 +60,9 @@
 <script>
 import * as bootstrap from 'bootstrap';
 import { perfilService } from '../services/api';
+import { userService } from '../services/api';
 import Swal from 'sweetalert2';
+import { baseUrl } from '../baseUrl';
 
 export default {
     data() {
@@ -77,7 +79,12 @@ export default {
                 'GLIX Ingeniería',
                 'RGL Ingeniería',
             ],
-            profileModal: null
+            profileModal: null,
+            numero_mensajes_recibidos_chat: 0,
+            numero_mensajes_recibidos_grupo: 0,
+            usuario: null,
+            updateInterval: null,
+            baseUrl: baseUrl
         }
     },
     async mounted() {
@@ -87,12 +94,59 @@ export default {
         }else {
             this.verificarRuta();
             this.verificarPrimeraVez();
+            this.updateInterval = setInterval(() => {
+                this.consultarNumeroMensajes();
+            }, 5000);
         }
     },
     methods: {
+        async consultarNumeroMensajes() {
+            const response = await userService.obtenerNumeroMensajesRecibidos(this.usuario.id);
+            if(response.status === 'success') {
+                var m_r = response.numero_mensajes_recibidos_chat;
+                if(m_r > 0) {
+                    this.notificarMensajesChat(m_r);
+                }
+
+                var m_r_grupo = response.numero_mensajes_recibidos_grupo;
+                if(m_r_grupo > 0) {
+                    this.notificarMensajesGrupo(m_r_grupo);
+                }
+            }
+        },
+        notificarMensajesChat(m_r) {
+            if(this.numero_mensajes_recibidos_chat != 0) {
+                if(this.numero_mensajes_recibidos_chat != m_r) {
+                this.numero_mensajes_recibidos_chat = m_r;
+                console.log("nuevo mensaje, ahora con: "+ this.numero_mensajes_recibidos_chat);
+                var audio = new Audio(this.baseUrl+'sounds/sound.mp3');
+                audio.play();
+                }else{
+                console.log("sigue siendo el mismo: "+ this.numero_mensajes_recibidos_chat);
+                }
+            }else{
+                this.numero_mensajes_recibidos_chat = m_r;
+                console.log("entro inicialmente con: "+ this.numero_mensajes_recibidos_chat);
+            }
+        },
+        notificarMensajesGrupo(m_r) {
+            if(this.numero_mensajes_recibidos_grupo != 0) {
+                if(this.numero_mensajes_recibidos_grupo != m_r) {
+                this.numero_mensajes_recibidos_grupo = m_r;
+                console.log("nuevo mensaje grupo, ahora con: "+ this.numero_mensajes_recibidos_grupo);
+                var audio = new Audio(this.baseUrl+'sounds/sound_2.mp3');
+                audio.play();
+                }else{
+                console.log("sigue siendo el mismo grupo: "+ this.numero_mensajes_recibidos_grupo);
+                }
+            }else{
+                this.numero_mensajes_recibidos_grupo = m_r;
+                console.log("entro grupo inicialmente con: "+ this.numero_mensajes_recibidos_grupo);
+            }
+        },
         verificarLogin() {
-            const user = localStorage.getItem('user');
-            if (!user) {
+            this.usuario = JSON.parse(localStorage.getItem('user'));
+            if (!this.usuario) {
                 return false;
             }
             return true;

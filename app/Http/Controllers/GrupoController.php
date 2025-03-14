@@ -75,7 +75,20 @@ class GrupoController extends Controller
                 $participante->es_admin = $participante->id == $grupo->detalle_grupo->id_crea ? true : false;
                 $grupo->detalle_participantes[] = $participante;
             }
+
+            $grupo->ultimo_mensaje = DB::table('mensajes_grupo')
+            ->join('users', 'mensajes_grupo.id_crea', '=', 'users.id')
+            ->select('mensajes_grupo.*', 'users.name as nombre_usuario', 'users.empresa as empresa_usuario')
+            ->where('id_grupo', $grupo->id_grupo)
+            ->orderBy('id', 'desc')
+            ->first();
         }
+
+        $ids_grupos = collect($ids_grupos)->sortByDesc(function($grupo) {
+            if ($grupo->ultimo_mensaje) {
+                return $grupo->ultimo_mensaje->id;
+            }
+        })->values()->all();
 
 
         return response()->json([

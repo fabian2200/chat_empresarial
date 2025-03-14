@@ -391,4 +391,27 @@ class UserController extends Controller
             ], 200);
         }
     }
+
+    public function obtenerNumeroMensajesRecibidos(Request $request)
+    {
+        $id = $request->id;
+       
+
+        $numero_mensajes_recibidos_chat = DB::table('mensajes')
+        ->join('chats', 'mensajes.id_chat', '=', 'chats.id')
+        ->where('mensajes.id_crea', '!=', $id)
+        ->count();
+
+        $numero_mensajes_recibidos_grupo = DB::table('mensajes_grupo')
+        ->join('grupos', 'mensajes_grupo.id_grupo', '=', 'grupos.id')
+        ->where('mensajes_grupo.id_crea', '!=', $id)
+        ->count();
+
+
+        return response()->json([
+            'status' => 'success',
+            'numero_mensajes_recibidos_chat' => $numero_mensajes_recibidos_chat,
+            'numero_mensajes_recibidos_grupo' => $numero_mensajes_recibidos_grupo
+        ], 200);
+    }
 } 

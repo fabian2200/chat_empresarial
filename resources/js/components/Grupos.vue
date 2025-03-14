@@ -52,12 +52,23 @@
                         @click="selectGroup(group)"
                     >
                         <div class="d-flex align-items-center elemento">
-                            <div class="ms-3 flex-grow-1">
-                                <small style="font-size: 12px;" class="mb-2 badge bg-warning text-dark">Participantes: {{ group.participantes }}</small>
-                                <h5 class="mb-1">
+                            <div class="ms-3" style="width: calc(100% - 1.5rem); position: relative;">
+                                <small style="font-size: 12px; position: absolute; top: -1px; right: -8px;" class="mb-2 badge bg-warning text-dark"><i class="bi bi-people-fill"></i> {{ group.participantes }}</small>
+                                <h6 class="mb-1">
                                     {{ group.detalle_grupo.nombre }} 
-                                </h5>
-                                <small class="text-muted" style="font-size: 10px;">
+                                </h6>
+                                <div v-if="group.ultimo_mensaje != null" class="ultimo_mensaje_grupo">
+                                    <small class="text-muted" style="font-size: 10px; font-weight: bold;">
+                                        Último mensaje <br>
+                                    </small>
+                                    <p class="mb-0" style="font-size: 10px;">
+                                        <span style="font-weight: bold;">{{ group.ultimo_mensaje.nombre_usuario }}: </span> {{ group.ultimo_mensaje.mensaje }}    
+                                    </p>
+                                    <p style="font-size: 8px; margin: 0px; margin-top: 3px; font-weight: bold;">
+                                        {{ group.ultimo_mensaje.fecha }} A las {{ group.ultimo_mensaje.hora }}
+                                    </p>
+                                </div>
+                                <small class="text-muted" style="font-size: 10px; font-weight: 900;">
                                     Creado el {{ group.detalle_grupo.fecha }} a las {{ group.detalle_grupo.hora }} 
                                 </small>
                             </div>
@@ -763,6 +774,7 @@ export default {
     margin: 10px;
     border-radius: 20px;
     background-color: rgba(117, 117, 117, 0.1);
+    border: 2px solid rgb(223, 222, 222);
 }
 
 .contact-item:hover {
@@ -771,6 +783,7 @@ export default {
 
 .contact-item.active {
     background-color: #9fc9f3;
+    border: 2px solid rgb(37, 168, 255);
 }
 
 /* Estilos para las burbujas de chat */
@@ -918,5 +931,25 @@ export default {
   width: 100%; 
   display: block; 
   text-align: left;
+}
+
+.ultimo_mensaje_grupo {
+    border-radius: 10px;
+    background-color: #fefeff;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    margin-top: 12px;
+    margin-bottom: 6px;
+}
+
+.ultimo_mensaje_grupo p {
+    width: 100%;
+    overflow: hidden;                 /* Oculta el texto que se desborde */
+    text-overflow: ellipsis;
+    display: -webkit-box;             /* Define un contenedor flexible */
+    -webkit-line-clamp: 2;            /* Limita el contenido a 2 líneas */
+    -webkit-box-orient: vertical;     /* Define la orientación vertical */
+    line-height: 1.5em;   
 }
 </style>

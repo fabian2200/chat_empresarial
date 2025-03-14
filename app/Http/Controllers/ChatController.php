@@ -102,7 +102,7 @@ class ChatController extends Controller
 
             $chats = collect($chats)->sortByDesc(function($chat) {
                 if ($chat->ultimo_mensaje) {
-                    return $chat->ultimo_mensaje->fecha . ' ' . $chat->ultimo_mensaje->hora;
+                    return $chat->ultimo_mensaje->id;
                 }
                 return $chat->created_at;
             })->values()->all();

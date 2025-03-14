@@ -45,6 +45,11 @@ export const userService = {
                 timer: 1500
             });
         }
+    },
+
+    obtenerNumeroMensajesRecibidos: async (id) => {
+        const response = await http().get('/numero-mensajes-recibidos?id=' + id);
+        return response.data;
     }
 }; 
 
@@ -55,13 +60,7 @@ export const chatService = {
             const response = await http().get('/chats-mios?id=' + id);
             return response.data;
         } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Error al obtener chats',
-                showConfirmButton: false,
-                timer: 1500
-            });
+            console.log(error);
         }
     },
     crearChat: async (id_crea, id_amigo) => {
@@ -90,13 +89,7 @@ export const chatService = {
             const response = await http().get('/mensajes-chat?id=' + id + '&chat_id=' + chat_id);
             return response.data;
         } catch (error) {
-            Swal.fire({ 
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Error al obtener mensajes',
-                showConfirmButton: false,
-                timer: 1500
-            });
+           console.log(error);
         }
     },
     enviarMensajeDifusion: async (id_crea, id_amigos_seleccionados, mensaje, archivo) => {

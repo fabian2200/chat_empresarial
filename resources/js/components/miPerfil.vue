@@ -6,7 +6,6 @@
             color="#38b4c5"
             :height=100
             :width=200
-            :on-cancel="onCancel"
             :is-full-page="true">
         </loading>
         <form @submit.prevent="updateProfile" autocomplete="off">
