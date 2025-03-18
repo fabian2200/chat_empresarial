@@ -28156,7 +28156,8 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       numero_mensajes_recibidos_grupo: 0,
       usuario: null,
       updateInterval: null,
-      baseUrl: _baseUrl__WEBPACK_IMPORTED_MODULE_3__.baseUrl
+      baseUrl: _baseUrl__WEBPACK_IMPORTED_MODULE_3__.baseUrl,
+      permisoConcedido: false
     };
   },
   mounted: function mounted() {
@@ -28173,11 +28174,13 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
             } else {
               _this.verificarRuta();
               _this.verificarPrimeraVez();
+              _this.pedirPermiso();
               _this.updateInterval = setInterval(function () {
                 _this.consultarNumeroMensajes();
-              }, 5000);
+              }, 3000);
             }
-          case 3:
+            document.addEventListener("visibilitychange", _this.manejarVisibilidadPestaña);
+          case 4:
           case "end":
             return _context.stop();
         }
@@ -28185,62 +28188,95 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
     }))();
   },
   methods: {
-    consultarNumeroMensajes: function consultarNumeroMensajes() {
+    pedirPermiso: function pedirPermiso() {
       var _this2 = this;
       return _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-        var response, m_r, m_r_grupo;
+        var permiso;
         return _regeneratorRuntime().wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
-              _context2.next = 2;
-              return _services_api__WEBPACK_IMPORTED_MODULE_1__.userService.obtenerNumeroMensajesRecibidos(_this2.usuario.id);
-            case 2:
-              response = _context2.sent;
-              if (response.status === 'success') {
-                m_r = response.numero_mensajes_recibidos_chat;
-                if (m_r > 0) {
-                  _this2.notificarMensajesChat(m_r);
-                }
-                m_r_grupo = response.numero_mensajes_recibidos_grupo;
-                if (m_r_grupo > 0) {
-                  _this2.notificarMensajesGrupo(m_r_grupo);
-                }
+              if ("Notification" in window) {
+                _context2.next = 3;
+                break;
               }
-            case 4:
+              alert("Tu navegador no soporta notificaciones.");
+              return _context2.abrupt("return");
+            case 3:
+              _context2.next = 5;
+              return Notification.requestPermission();
+            case 5:
+              permiso = _context2.sent;
+              _this2.permisoConcedido = permiso === "granted";
+            case 7:
             case "end":
               return _context2.stop();
           }
         }, _callee2);
       }))();
     },
-    notificarMensajesChat: function notificarMensajesChat(m_r) {
-      if (this.numero_mensajes_recibidos_chat != 0) {
-        if (this.numero_mensajes_recibidos_chat != m_r) {
-          this.numero_mensajes_recibidos_chat = m_r;
-          console.log("nuevo mensaje, ahora con: " + this.numero_mensajes_recibidos_chat);
-          var audio = new Audio(this.baseUrl + 'sounds/sound.mp3');
-          audio.play();
-        } else {
-          console.log("sigue siendo el mismo: " + this.numero_mensajes_recibidos_chat);
+    enviarNotificacion: function enviarNotificacion(mensaje) {
+      if (document.hidden) {
+        document.title = "📩 Nuevos mensajes";
+        if (this.permisoConcedido) {
+          var url_imagen = window.location.origin + "/chat-empresarial/public/images/logo.ico";
+          console.log(url_imagen);
+          new Notification("Notificación Chat Empresarial ✅", {
+            body: mensaje,
+            icon: url_imagen,
+            title: "notificacion de prueba"
+          });
         }
-      } else {
+      }
+    },
+    manejarVisibilidadPestaña: function manejarVisibilidadPestaña() {
+      if (!document.hidden) {
+        document.title = "Chat - Empresarial";
+      }
+    },
+    consultarNumeroMensajes: function consultarNumeroMensajes() {
+      var _this3 = this;
+      return _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+        var response, m_r, m_r_grupo;
+        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              _context3.next = 2;
+              return _services_api__WEBPACK_IMPORTED_MODULE_1__.userService.obtenerNumeroMensajesRecibidos(_this3.usuario.id);
+            case 2:
+              response = _context3.sent;
+              if (response.status === 'success') {
+                m_r = response.numero_mensajes_recibidos_chat;
+                _this3.notificarMensajesChat(m_r);
+                m_r_grupo = response.numero_mensajes_recibidos_grupo;
+                _this3.notificarMensajesGrupo(m_r_grupo);
+              }
+            case 4:
+            case "end":
+              return _context3.stop();
+          }
+        }, _callee3);
+      }))();
+    },
+    notificarMensajesChat: function notificarMensajesChat(m_r) {
+      if (this.numero_mensajes_recibidos_chat != m_r) {
         this.numero_mensajes_recibidos_chat = m_r;
-        console.log("entro inicialmente con: " + this.numero_mensajes_recibidos_chat);
+        console.log("nuevo mensaje, ahora con: " + this.numero_mensajes_recibidos_chat);
+        var audio = new Audio(this.baseUrl + 'sounds/sound.mp3');
+        audio.play();
+        this.enviarNotificacion("Tienes un nuevo mensaje 📩");
+      } else {
+        console.log("sigue siendo el mismo: " + this.numero_mensajes_recibidos_chat);
       }
     },
     notificarMensajesGrupo: function notificarMensajesGrupo(m_r) {
-      if (this.numero_mensajes_recibidos_grupo != 0) {
-        if (this.numero_mensajes_recibidos_grupo != m_r) {
-          this.numero_mensajes_recibidos_grupo = m_r;
-          console.log("nuevo mensaje grupo, ahora con: " + this.numero_mensajes_recibidos_grupo);
-          var audio = new Audio(this.baseUrl + 'sounds/sound_2.mp3');
-          audio.play();
-        } else {
-          console.log("sigue siendo el mismo grupo: " + this.numero_mensajes_recibidos_grupo);
-        }
-      } else {
+      if (this.numero_mensajes_recibidos_grupo != m_r) {
         this.numero_mensajes_recibidos_grupo = m_r;
-        console.log("entro grupo inicialmente con: " + this.numero_mensajes_recibidos_grupo);
+        console.log("nuevo mensaje grupo, ahora con: " + this.numero_mensajes_recibidos_grupo);
+        var audio = new Audio(this.baseUrl + 'sounds/sound_2.mp3');
+        audio.play();
+        this.enviarNotificacion("Tienes un nuevo mensaje en un grupo 📫");
+      } else {
+        console.log("sigue siendo el mismo grupo: " + this.numero_mensajes_recibidos_grupo);
       }
     },
     verificarLogin: function verificarLogin() {
@@ -28263,7 +28299,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       }
     },
     updateProfile: function updateProfile() {
-      var _this3 = this;
+      var _this4 = this;
       if (this.profileData.password === '' || this.profileData.empresa === '' || this.profileData.genero === '') {
         sweetalert2__WEBPACK_IMPORTED_MODULE_2___default().fire({
           icon: 'error',
@@ -28275,7 +28311,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       } else {
         _services_api__WEBPACK_IMPORTED_MODULE_1__.perfilService.actualizarDatos(this.usuario.id, this.profileData).then(function (response) {
           if (response.status === 'success') {
-            _this3.profileModal.hide();
+            _this4.profileModal.hide();
             sweetalert2__WEBPACK_IMPORTED_MODULE_2___default().fire({
               icon: 'success',
               title: 'Actualizado',
@@ -28283,7 +28319,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
               showConfirmButton: false,
               timer: 1500
             });
-            _this3.misDatos();
+            _this4.misDatos();
           } else {
             sweetalert2__WEBPACK_IMPORTED_MODULE_2___default().fire({
               icon: 'error',
@@ -28297,25 +28333,25 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
       }
     },
     misDatos: function misDatos() {
-      var _this4 = this;
-      return _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee3() {
+      var _this5 = this;
+      return _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4() {
         var response;
-        return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-          while (1) switch (_context3.prev = _context3.next) {
+        return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+          while (1) switch (_context4.prev = _context4.next) {
             case 0:
-              _context3.next = 2;
-              return _services_api__WEBPACK_IMPORTED_MODULE_1__.perfilService.misDatos(_this4.usuario.id);
+              _context4.next = 2;
+              return _services_api__WEBPACK_IMPORTED_MODULE_1__.perfilService.misDatos(_this5.usuario.id);
             case 2:
-              response = _context3.sent;
+              response = _context4.sent;
               if (response.status === 'success') {
-                _this4.usuario = response.data;
+                _this5.usuario = response.data;
                 localStorage.setItem('user', JSON.stringify(response.data));
               }
             case 4:
             case "end":
-              return _context3.stop();
+              return _context4.stop();
           }
-        }, _callee3);
+        }, _callee4);
       }))();
     },
     setActiveMenu: function setActiveMenu(menu) {
@@ -49394,7 +49430,7 @@ __webpack_require__.r(__webpack_exports__);
 function http() {
   return axios__WEBPACK_IMPORTED_MODULE_1__["default"].create({
     //baseURL: 'https://ingeer.co'+baseUrl+'api/'
-    baseURL: 'http://192.168.1.17' + _baseUrl__WEBPACK_IMPORTED_MODULE_0__.baseUrl + 'api/'
+    baseURL: 'https://192.168.1.17' + _baseUrl__WEBPACK_IMPORTED_MODULE_0__.baseUrl + 'api/'
   });
 }
 
