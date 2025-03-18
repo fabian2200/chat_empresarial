@@ -53,7 +53,6 @@ export const userService = {
     }
 }; 
 
-
 export const chatService = {
     obtenerChatsUsuario: async (id) => {
         try {
@@ -160,6 +159,10 @@ export const grupoService = {
     agregarParticipantes: async (id_crea, id_grupo, id_participantes) => {
         id_participantes = id_participantes.join(',');
         const response = await http().post('/agregar-participantes', { id_crea, id_grupo, id_participantes });
+        return response.data;
+    },
+    editarGrupo: async (id_grupo, nombre) => {
+        const response = await http().post('/editar-grupo', { id_grupo, nombre });
         return response.data;
     }
 }

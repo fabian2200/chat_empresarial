@@ -51,9 +51,10 @@
                         :class="{'active': groupSelected?.id === group.id}"
                         @click="selectGroup(group) ; mostrarChatContainer()"
                     >
-                        <div class="d-flex align-items-center elemento">
+                        <div class="d-flex align-items-center elemento" style="z-index: 1;">
                             <div class="ms-3" style="width: calc(100% - 1.5rem); position: relative;">
                                 <small style="font-size: 12px; position: absolute; top: -1px; right: -8px;" class="mb-2 badge bg-warning text-dark"><i class="bi bi-people-fill"></i> {{ group.participantes }}</small>
+                                <small @click="editarGrupo(group)" v-if="group.es_admin" style="font-size: 12px; position: absolute; top: -1px; right: 36px; z-index: 2;" class="mb-2 badge bg-primary"><i class="bi bi-pencil-square"></i></small>
                                 <h6 class="mb-1">
                                     {{ group.detalle_grupo.nombre }} 
                                 </h6>
@@ -273,6 +274,7 @@
       ref="fileInputII" 
       class="d-none" 
       @change="handleFileSelected" 
+      multiple
     >
 
     <!-- Modal de vista previa del archivo -->
@@ -467,6 +469,7 @@ export default {
             baseUrl: baseUrl,
             isLoading: false,
             esDispositivoMovil: false,
+            erroresArchivo: [],
         }
     },
     async mounted() {
@@ -583,70 +586,82 @@ export default {
             console.log(event);
             const files = event.target.files;
             if (files.length > 0) {
-                console.log(files);
+                this.isLoading = true;
                 const maxFileSize = 100 * 1024 * 1024;
-                if (files[0].size > maxFileSize) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Archivo demasiado grande',
-                        text: 'El archivo no debe pesar más de 100 MB',
-                        showConfirmButton: false,
-                        timer: 2500
-                    });
-                    this.$refs.fileInputII.value = '';
-                    return;
+                for(var i = 0; i < files.length; i++){
+                    if (files[i].size > maxFileSize) {
+                        this.erroresArchivo.push('<li style="color: red;">'+ files[i].name + ' es demasiado grande, el tamaño máximo es de 100 MB</li>');
+                    }else{
+                        this.archivo = files[i];
+                        await this.guardarMensajeArchivo('archivo', this.archivo);
+                    }
                 }
-                this.archivo = files[0];
-                await this.guardarMensaje('archivo');
+
+                var mensaje_swal = '<ul>';
+                for(var i = 0; i < this.erroresArchivo.length; i++){
+                    mensaje_swal += this.erroresArchivo[i];
+                }
+                mensaje_swal += '</ul>';
+                Swal.fire({ 
+                    icon: 'warning',
+                    title: 'Atención',
+                    html: mensaje_swal,
+                    showConfirmButton: true, 
+                    confirmButtonText: 'Cerrar',
+                    confirmButtonColor: '#3085d6',
+                });
+
+                this.isLoading = false;
+                this.erroresArchivo = [];
                 this.$refs.fileInputII.value = '';
+                await this.loadMessages();
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
+            }
+        },
+        async guardarMensajeArchivo(tipo, archivo) {
+            const id_mio = localStorage.getItem('id_mio');
+            const id_grupo = localStorage.getItem('id_grupo');
+            const mensaje = this.newMessage;
+            
+            try {
+                let response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, this.archivo);
+                if (!response.success) {
+                    this.erroresArchivo.push('<li style="color: red;">'+response.message+'</li>');
+                }else{
+                    this.erroresArchivo.push('<li style="color: green;">'+archivo.name+' subido correctamente</li>');
+                }
+            } catch (error) {
+                this.erroresArchivo.push(error.response.statusText == 'Content Too Large' ? '<li style="color: red;">El archivo '+this.archivo.name+' es demasiado grande</li>' : '<li style="color: red;">'+error.response.statusText+'</li>');
             }
         },
         async guardarMensaje(tipo) {
             const id_mio = localStorage.getItem('id_mio');
             const id_grupo = localStorage.getItem('id_grupo');
             const mensaje = this.newMessage;
-            let response;
-            if (tipo == 'archivo') {
-                this.isLoading = true;
-                try {
-                    response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, this.archivo);
-                    if (response.success) {
-                        this.isLoading = false;
-                    } else {
-                        this.isLoading = false;
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: response.message,
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                    }
-                } catch (error) {
-                    this.isLoading = false;
+            if(mensaje.trim() != ''){
+                let response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, null);
+                if (response.success) {
+                    this.newMessage = '';
+                    await this.loadMessages();
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                } else {
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: error.response.statusText == 'Content Too Large' ? 'El archivo es demasiado grande' : error.response.statusText,
-                        showConfirmButton: false,
-                        timer: 2500
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: response.message
                     });
                 }
-            } else {
-                response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, null);
-            }
-            
-            if (response.success) {
-                this.newMessage = '';
-                await this.loadMessages();
-                this.$nextTick(() => {
-                    this.scrollToBottom();
-                });
-            } else {
+            }else{
                 Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: response.message
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'No se puede enviar un mensaje vacío',
+                    showConfirmButton: false,
+                    timer: 2500
                 });
             }
         },
@@ -788,6 +803,29 @@ export default {
                 this.$refs.chatContainer.style.display = 'none'; 
                 this.$refs.listaContactosContainer.style.display = 'block';
             }
+        },
+        editarGrupo(group) {
+            Swal.fire({
+            title: "cambiar Nombre del grupo",
+            input: "text",
+            inputValue: group.detalle_grupo.nombre,
+            inputAttributes: {
+                autocapitalize: "off"
+            },
+            showCancelButton: true,
+            confirmButtonText: "Editar",
+            cancelButtonText: "Cancelar",
+            showLoaderOnConfirm: true,
+            preConfirm: async (nombre) => {
+                await grupoService.editarGrupo(group.id_grupo, nombre);
+                await this.loadGroups();
+                const grupo = this.groups.find(group => group.id_grupo == group.id_grupo);
+                this.groupSelected = grupo;
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                console.log(result);
+            });
         },
     },
     beforeUnmount() {

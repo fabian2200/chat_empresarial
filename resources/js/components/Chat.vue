@@ -563,7 +563,8 @@ export default {
       availableUsersDifusion: [],
       baseUrl: baseUrl,
       isLoading: false,
-      esDispositivoMovil: false
+      esDispositivoMovil: false,
+      erroresArchivo: []
     }
   },
   methods: {
@@ -708,75 +709,81 @@ export default {
     async handleFileSelected(event) {
       const files = event.target.files;
       if (files.length > 0) {
+        this.isLoading = true;
         const maxFileSize = 100 * 1024 * 1024;
-        
-        if (files[0].size > maxFileSize) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Archivo demasiado grande',
-            text: 'El archivo no debe pesar más de 100 MB.',
-            showConfirmButton: false, 
-            timer: 2500
-          });
-          this.$refs.fileInput.value = '';
-          return;
+        for(var i = 0; i < files.length; i++){
+          if (files[i].size > maxFileSize) {
+            this.erroresArchivo.push('<li style="color: red;">'+ files[i].name+' es demasiado grande, el tamaño máximo es de 100 MB</li>');
+          }else{
+            this.archivo = files[i];
+            await this.guardarMensajeArchivo('archivo', this.archivo);
+          }
         }
 
-        this.archivo = files[0];
-        await this.guardarMensaje('archivo');
+        var mensaje_swal = '<ul>';
+        for(var i = 0; i < this.erroresArchivo.length; i++){
+          mensaje_swal += this.erroresArchivo[i];
+        }
+        mensaje_swal += '</ul>';
+
+        Swal.fire({
+          icon: 'warning',
+          title: 'Atención',
+          html: mensaje_swal,
+          showConfirmButton: true, 
+          confirmButtonText: 'Cerrar',
+          confirmButtonColor: '#3085d6',
+        });
+
+        this.isLoading = false;
+        this.erroresArchivo = [];
         this.$refs.fileInput.value = '';
       }
+    },
+    async guardarMensajeArchivo(tipo, archivo) {
+      const id_mio = localStorage.getItem('id_mio');
+      const id_chat = localStorage.getItem('id_chat');
+      const mensaje = this.newMessage;
+      
+      try { 
+        let response = await chatService.guardarMensaje(id_mio, id_chat, mensaje, tipo, this.archivo);
+        if (response.success == false) {
+          this.erroresArchivo.push('<li style="color: red;">'+response.message+'</li>');
+        }else{
+          this.erroresArchivo.push('<li style="color: green;">'+archivo.name+' subido correctamente</li>');
+        }
+      } catch (error) {
+        this.erroresArchivo.push(error.response.statusText == 'Content Too Large' ? '<li style="color: red;">El archivo '+this.archivo.name+' es demasiado grande</li>' : '<li style="color: red;">'+error.response.statusText+'</li>');
+      }       
     },
     async guardarMensaje(tipo) {
       const id_mio = localStorage.getItem('id_mio');
       const id_chat = localStorage.getItem('id_chat');
       const mensaje = this.newMessage;
-      let response;
-      if (tipo == 'archivo') {
-        this.isLoading = true;
-
-        try { 
-          response = await chatService.guardarMensaje(id_mio, id_chat, mensaje, tipo, this.archivo);
-          if (response.success) {
-            this.isLoading = false;
-          } else {
-            this.isLoading = false;
-            Swal.fire({
-              icon: 'error',
-              title: 'Oops...',
-              text: response.message,
-              showConfirmButton: false, 
-              timer: 2500
-            });
-          }
-        } catch (error) {
-          this.isLoading = false;
+      
+      if(mensaje.trim() != ''){
+        let response = await chatService.guardarMensaje(id_mio, id_chat, mensaje, tipo, null); 
+        if (response.success) {
+          this.newMessage = '';
+          await this.loadMessages();
+          await this.loadChats();
+          this.scrollToBottom();
+        } else {
           Swal.fire({
             icon: 'error',
             title: 'Oops...',
-            text: error.response.statusText == 'Content Too Large' ? 'El archivo es demasiado grande' : error.response.statusText,
-            showConfirmButton: false, 
-            timer: 2500
+            text: response.message
           });
-        }       
-      } else {
-        response = await chatService.guardarMensaje(id_mio, id_chat, mensaje, tipo, null);
-      }
-      
-      if (response.success) {
-        this.newMessage = '';
-        
-        await this.loadMessages();
-        await this.loadChats();
-        this.scrollToBottom();
-      } else {
+        }
+      }else{
         Swal.fire({
           icon: 'error',
           title: 'Oops...',
-          text: response.message
+          text: 'No se puede enviar un mensaje vacío',
+          showConfirmButton: false, 
+          timer: 2500
         });
       }
-
     },
     openFileModal(fileName) {
       this.selectedFile = fileName;

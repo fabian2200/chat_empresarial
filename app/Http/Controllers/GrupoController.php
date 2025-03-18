@@ -257,5 +257,27 @@ class GrupoController extends Controller
             'message' => 'Participantes agregados correctamente'
         ]); 
     }
+
+    public function editarGrupo(Request $request)
+    {
+        $id_grupo = $request->id_grupo;
+        $nombre = $request->nombre;
+     
+        $actualizado = DB::table('grupos')->where('id', $id_grupo)->update([
+            'nombre' => $nombre
+        ]);
+
+        if($actualizado){
+            return response()->json([
+                'success' => true,
+                'message' => 'Grupo actualizado correctamente'
+            ]);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar grupo'
+            ]);
+        }
+    }
 }
 
