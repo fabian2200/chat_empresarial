@@ -104,7 +104,6 @@ class ChatController extends Controller
                 if ($chat->ultimo_mensaje) {
                     return $chat->ultimo_mensaje->id;
                 }
-                return $chat->created_at;
             })->values()->all();
 
             return response()->json([
