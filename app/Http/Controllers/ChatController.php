@@ -255,19 +255,19 @@ class ChatController extends Controller
     private function formatLastSeen($lastSeen)
     {
         if ($lastSeen == null) {
-            return "Nunca";
+            return "Activo nunca";
         }
         
         $diff = now()->diff($lastSeen);
         
         if ($diff->days > 0) {
-            return "hace {$diff->days} días";
+            return "Hace {$diff->days} Ds";
         } elseif ($diff->h > 0) {
-            return "hace {$diff->h} horas";
+            return "Hace {$diff->h} Hrs";
         } elseif ($diff->i > 0) {
-            return "hace {$diff->i} minutos";
+            return "hace {$diff->i} Min";
         } else {
-            return "hace un momento";
+            return "Hace 1 min";
         }
     }
 

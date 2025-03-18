@@ -87,7 +87,7 @@
                                 <h6 class="mb-0">
                                     {{ groupSelected.detalle_grupo.nombre }} 
                                     <small @click="verParticipantes" style="cursor: pointer;" class="text-muted badge bg-warning text-light">
-                                        Participantes: {{ groupSelected.participantes }}
+                                        <i class="bi bi-people-fill"></i>: {{ groupSelected.participantes }}
                                     </small>
                                 </h6>
                                 <small class="text-muted">

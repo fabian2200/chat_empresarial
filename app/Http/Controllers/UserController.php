@@ -396,17 +396,27 @@ class UserController extends Controller
     {
         $id = $request->id;
        
+        $chats = DB::table('chats')
+        ->where('id_crea', $id)
+        ->orWhere('id_amigo', $id)
+        ->get();
 
-        $numero_mensajes_recibidos_chat = DB::table('mensajes')
-        ->join('chats', 'mensajes.id_chat', '=', 'chats.id')
-        ->where('mensajes.id_crea', '!=', $id)
-        ->count();
+        $numero_mensajes_recibidos_chat = 0;
+        foreach($chats as $chat){
+            $numero_mensajes_recibidos_chat += DB::table('mensajes')->where('id_chat', $chat->id)->where('id_crea', '!=', $id)->count();
+        }
 
-        $numero_mensajes_recibidos_grupo = DB::table('mensajes_grupo')
-        ->join('grupos', 'mensajes_grupo.id_grupo', '=', 'grupos.id')
-        ->where('mensajes_grupo.id_crea', '!=', $id)
-        ->count();
+        $grupos = DB::table('grupos')
+        ->join('grupos_usuarios', 'grupos.id', '=', 'grupos_usuarios.id_grupo')
+        ->select('grupos.id', 'grupos.nombre')
+        ->where('grupos_usuarios.id_usuario', $id)
+        ->get();
 
+
+        $numero_mensajes_recibidos_grupo = 0;
+        foreach($grupos as $grupo){
+            $numero_mensajes_recibidos_grupo += DB::table('mensajes_grupo')->where('id_grupo', $grupo->id)->where('id_crea', '!=', $id)->count();
+        }
 
         return response()->json([
             'status' => 'success',

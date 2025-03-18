@@ -81,7 +81,7 @@
                 <small class="mb-0">
                   {{ chat.nombre }} 
                   <span :class="chat.online ? 'badge bg-success text-black' : 'badge bg-warning text-black'">
-                    {{ chat.online ? 'En línea' : 'Activo ' + chat.last_seen }}
+                    {{ chat.online ? 'En línea' : chat.last_seen }}
                   </span>
                 </small>
                 <br>
@@ -109,7 +109,14 @@
                 :alt="selectedChat.nombre"
               >
               <div class="ms-3">
-                <h6 class="mb-0">{{ selectedChat.nombre }} <span :class="selectedChat.online ? 'badge bg-success' : 'badge bg-primary'">{{ selectedChat.online ? 'En línea' : 'Activo ' + selectedChat.last_seen }}</span></h6>
+                <h6 class="mb-0">{{ selectedChat.nombre }} 
+                  <span v-if="!esDispositivoMovil" :class="selectedChat.online ? 'badge bg-success' : 'badge bg-primary'">
+                    {{ selectedChat.online ? 'En línea' : selectedChat.last_seen }}
+                  </span>
+                  <span v-else :class="selectedChat.online ? 'badge bg-success position-absolute' : 'badge bg-primary position-absolute'" style="right: 6%; top: 8%;">
+                    {{ selectedChat.online ? 'En línea' : selectedChat.last_seen }}
+                  </span>
+                </h6>
                 <small class="text-muted">
                   {{ selectedChat.empresa }}
                 </small>
@@ -130,7 +137,7 @@
           <!-- Área de mensajes -->
           <div 
             class="chat-messages p-3 overflow-auto"
-            :style="esDispositivoMovil ? 'height: calc(100vh - 25vh); overflow-x: hidden !important;' : 'height: calc(100vh - 186px);'"
+            :style="esDispositivoMovil ? 'height: calc(100vh - 20vh); overflow-x: hidden !important;' : 'height: calc(100vh - 186px);'"
             ref="messageContainer"
           >
             <div 
@@ -900,7 +907,7 @@ export default {
         this.$refs.chatContainer.style.display = 'none'; 
         this.$refs.listaContactosContainer.style.display = 'block';
       }
-    },
+    }
   },
   watch: {
     newChatSearchQuery: {
