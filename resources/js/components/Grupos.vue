@@ -52,26 +52,28 @@
                         @click="selectGroup(group) ; mostrarChatContainer()"
                     >
                         <div class="d-flex align-items-center elemento" style="z-index: 1;">
-                            <div class="ms-3" style="width: calc(100% - 1.5rem); position: relative;">
+                            <div class="ms-2" style="width: calc(100% - 1.2rem); position: relative;">
                                 <small style="font-size: 12px; position: absolute; top: -1px; right: -8px;" class="mb-2 badge bg-warning text-dark"><i class="bi bi-people-fill"></i> {{ group.participantes }}</small>
                                 <small @click="editarGrupo(group)" v-if="group.es_admin" style="font-size: 12px; position: absolute; top: -1px; right: 36px; z-index: 2;" class="mb-2 badge bg-primary"><i class="bi bi-pencil-square"></i></small>
                                 <h6 class="mb-1">
                                     {{ group.detalle_grupo.nombre }} 
-                                </h6>
-                                <div v-if="group.ultimo_mensaje != null" class="ultimo_mensaje_grupo">
-                                    <small class="text-muted" style="font-size: 10px; font-weight: bold;">
-                                        Último mensaje <br>
+                                    <br>
+                                    <small class="text-muted" style="font-size: 10px; font-weight: 900;">
+                                        Creado el {{ group.detalle_grupo.fecha }} a las {{ group.detalle_grupo.hora }} 
                                     </small>
+                                </h6>
+                                <small class="text-muted" style="color: #3253ff !important; font-size: 14px; font-weight: bold;">
+                                    Último mensaje
+                                </small>
+                                <div v-if="group.ultimo_mensaje != null" class="ultimo_mensaje_grupo">
                                     <p class="mb-0" style="font-size: 10px;">
-                                        <span style="font-weight: bold;">{{ group.ultimo_mensaje.nombre_usuario }}: </span> {{ group.ultimo_mensaje.mensaje }}    
+                                        <span style="font-weight: bold;">{{ group.ultimo_mensaje.nombre_usuario }}: </span> <p v-html="group.ultimo_mensaje.mensaje" class="mb-1 texto_en_html"></p>   
                                     </p>
-                                    <p style="font-size: 8px; margin: 0px; margin-top: 3px; font-weight: bold;">
+                                    <p style="width: 100%; text-align: right; font-size: 8px; margin: 0px; margin-top: 3px; margin-bottom: 3px; font-weight: bold;">
                                         {{ group.ultimo_mensaje.fecha }} A las {{ group.ultimo_mensaje.hora }}
                                     </p>
                                 </div>
-                                <small class="text-muted" style="font-size: 10px; font-weight: 900;">
-                                    Creado el {{ group.detalle_grupo.fecha }} a las {{ group.detalle_grupo.hora }} 
-                                </small>
+                                
                             </div>
                         </div>
                     </div>
@@ -110,7 +112,7 @@
                     <!-- Área de mensajes -->
                     <div 
                         class="chat-messages p-3 overflow-auto"
-                        :style="esDispositivoMovil ? 'height: calc(100vh - 20vh); overflow-x: hidden !important;' : 'height: calc(100vh - 186px);'"
+                        :style="esDispositivoMovil ? 'height: calc(100vh - 20vh); overflow-x: hidden !important;' : 'height: calc(100vh - 118px - ' + altura_editable + 'px);'"
                         ref="messageContainer"
                     >
                         <div 
@@ -128,7 +130,7 @@
                             <div 
                                 class="message d-inline-block p-2"
                                 :class="[
-                                message.is_mine ? 'message-mine bg-primary text-white' : 'message-other bg-white',
+                                message.is_mine ? 'message-mine bg-primary text-white p-3' : 'message-other bg-white p-3',
                                 {'rounded-bottom-end-0': message.is_mine},
                                 {'rounded-bottom-start-0': !message.is_mine}
                                 ]"
@@ -143,7 +145,7 @@
                                 <small :style="message.is_mine ? 'color: white; font-size: 10px;' : 'color: grey; font-size: 10px;'">
                                    {{ message.usuario }}
                                 </small>
-                                <p :style="message.is_mine ? 'color: white;' : 'color: black;'" class="mb-1">{{ message.mensaje }}</p>
+                                <p v-html="message.mensaje" :style="message.is_mine ? 'color: white;' : 'color: black;'" class="mb-1 texto_en_html"></p>
                                 
                                 <!-- Modificar vista previa del archivo -->
                                 <div v-if="message.tiene_archivo === 1" class="file-preview mb-2">
@@ -174,18 +176,23 @@
                     </div>
                     <!-- Área de entrada de mensaje -->
                     <div v-if="groupSelected?.estado == 1" class="chat-input p-3" style="background-color: #f1ede6 !important;">
-                        <div class="input-group">
+                        <div class="input-group" style="align-items: center;">
                         <button style="padding: 0px !important; border-color: #f1ede6 !important; background-color: #f1ede6 !important;" class="btn btn-light" @click="openFileExplorer">
                             <i class="bi bi-plus-lg" style="color: grey; font-size: 1.5rem;"></i>
                         </button>
-                        <form autocomplete="off" @submit.prevent="guardarMensaje('texto')" :style="!esDispositivoMovil ? 'flex-grow: 1;' : 'flex-grow: 0; width: 72%; margin-right: 10px;'">
-                            <input
+                        <form 
+                            @submit.prevent="guardarMensaje('texto')"
+                            @keydown.enter.exact.prevent="guardarMensaje('texto')"
+                            autocomplete="off" 
+                            :style="esDispositivoMovil ? 'flex-grow: 0; width: 72%; margin-right: 10px;' : 'flex-grow: 1; width: 93%;'">
+                            <div contenteditable="true" @input="updateText" ref="editableDiv" class="editable"></div>
+                            <!-- <input
                                 style="border: 1px solid #c3c3c3; width: 98%;"
                                 type="text" 
                                 class="form-control mx-2" 
                                 placeholder="Escribe un mensaje..."
                                 v-model="newMessage"
-                            >
+                            > -->
                         </form>
                         <button 
                             class="btn btn-primary rounded-circle"
@@ -470,6 +477,7 @@ export default {
             isLoading: false,
             esDispositivoMovil: false,
             erroresArchivo: [],
+            altura_editable: 78
         }
     },
     async mounted() {
@@ -639,11 +647,14 @@ export default {
         async guardarMensaje(tipo) {
             const id_mio = localStorage.getItem('id_mio');
             const id_grupo = localStorage.getItem('id_grupo');
-            const mensaje = this.newMessage;
-            if(mensaje.trim() != ''){
+            const vacio = this.$refs.editableDiv.textContent.trim();
+            if(vacio != ''){
+                const mensaje = this.newMessage;
                 let response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, null);
                 if (response.success) {
                     this.newMessage = '';
+                    this.$refs.editableDiv.innerHTML = '';
+                    this.altura_editable = 78;
                     await this.loadMessages();
                     this.$nextTick(() => {
                         this.scrollToBottom();
@@ -827,6 +838,10 @@ export default {
                 console.log(result);
             });
         },
+        updateText(event) {
+            this.altura_editable = this.$refs.editableDiv.offsetHeight + 32;
+            this.newMessage = event.target.innerHTML;
+        }
     },
     beforeUnmount() {
         this.stopAutoUpdate();
@@ -863,13 +878,41 @@ export default {
 
 .message-mine {
     border-radius: 15px 0px 15px 15px !important;
-    background: linear-gradient(135deg, #007bff, #0056b3);
+    background: linear-gradient(to right, #007bff, #0061ca);
+}
+
+.message-mine .texto_en_html ::v-deep(p){
+  margin-bottom: 0px !important;
+  color: white !important;
+  font-size: 14px !important;
+  text-align: left !important;
+  text-indent: 0pt !important;
+}
+
+.texto_en_html ::v-deep(p){
+  margin-bottom: 0px !important;
+}
+
+.message-mine .texto_en_html ::v-deep(span){
+  color: white !important;
 }
 
 .message-other {
     border-radius: 0px 15px 15px 15px !important;
     background-color: rgb(170, 198, 252);
     border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.message-other .texto_en_html ::v-deep(p){
+  margin-bottom: 0px !important;
+  color: rgb(54, 54, 54) !important;
+  font-size: 14px !important;
+  text-align: left !important;
+  text-indent: 0pt !important;
+}
+
+.message-other .texto_en_html ::v-deep(span){
+  color: rgb(54, 54, 54) !important;
 }
 
 /* Estilizar scrollbar */
@@ -1007,7 +1050,7 @@ export default {
     padding: 10px;
     display: flex;
     flex-direction: column;
-    margin-top: 12px;
+    margin-top: 6px;
     margin-bottom: 6px;
 }
 
@@ -1019,5 +1062,25 @@ export default {
     -webkit-line-clamp: 2;            /* Limita el contenido a 2 líneas */
     -webkit-box-orient: vertical;     /* Define la orientación vertical */
     line-height: 1.5em;   
+}
+
+.editable {
+  border: 1px solid #ccc;
+  padding-left: 18px;
+  padding-right: 18px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  min-height: 35px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.editable ::v-deep(p) {
+  text-indent: 0pt !important;
+  margin-bottom: 0px !important;
 }
 </style>

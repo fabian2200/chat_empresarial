@@ -76,18 +76,19 @@
                 <small v-if="chat.mensajes_sin_leer > 0" class="badge bg-danger ms-2 numero_mensajes">
                   <i style="margin-right: 3px;" class="bi bi-chat-dots"></i> {{ chat.mensajes_sin_leer }}
                 </small>
-                <small class="text-muted">{{ chat.empresa }}</small>
-                <br>
-                <small class="mb-0">
+                <small class="mb-0" style="font-size: 14px;">
                   {{ chat.nombre }} 
                   <span :class="chat.online ? 'badge bg-success text-black' : 'badge bg-warning text-black'">
                     {{ chat.online ? 'En línea' : chat.last_seen }}
                   </span>
                 </small>
                 <br>
-                <small class="text-muted" style="font-size: 10px;">
-                  Creado el {{ chat.fecha_chat }} a las {{ chat.hora_chat }} 
-                </small>
+                <div style="margin-top: 5px;">
+                  <p class="text-muted" style="font-size: 11px; margin-bottom: 0px;">{{ chat.empresa }}</p>
+                  <p class="text-muted" style="font-size: 10px; margin-bottom: 0px;">
+                    Creado el {{ chat.fecha_chat }} a las {{ chat.hora_chat }} 
+                  </p>
+                </div>
               </div>
               <small class="text-muted">{{ chat.lastMessageTime }}</small>
             </div>
@@ -137,7 +138,7 @@
           <!-- Área de mensajes -->
           <div 
             class="chat-messages p-3 overflow-auto"
-            :style="esDispositivoMovil ? 'height: calc(100vh - 20vh); overflow-x: hidden !important;' : 'height: calc(100vh - 186px);'"
+            :style="esDispositivoMovil ? 'height: calc(100vh - 20vh); overflow-x: hidden !important;' : 'height: calc(100vh - 118px - ' + altura_editable + 'px);'"
             ref="messageContainer"
           >
             <div 
@@ -149,7 +150,7 @@
               <div 
                 class="message d-inline-block p-3"
                 :class="[
-                  message.is_mine ? 'message-mine bg-primary text-white' : 'message-other bg-white',
+                  message.is_mine ? 'message-mine bg-primary text-white p-3' : 'message-other bg-white p-3',
                   {'rounded-bottom-end-0': message.is_mine},
                   {'rounded-bottom-start-0': !message.is_mine}
                 ]"
@@ -161,7 +162,7 @@
                 <div v-else style="position: absolute; left: -27px; top: 0px; z-index: 99;">
                     <img :src="baseUrl+'images/other.png'" style="width: 30px; height: 50px;">
                 </div>
-                <p :style="message.is_mine ? 'color: white;' : 'color: black;'" class="mb-1">{{ message.mensaje }}</p>
+                <p v-html="message.mensaje" :style="message.is_mine ? 'color: white;' : 'color: black;'" class="mb-1 texto_en_html"></p>
                 
                 <!-- Modificar vista previa del archivo -->
                 <div v-if="message.tiene_archivo === 1" class="file-preview mb-2">
@@ -193,18 +194,22 @@
 
           <!-- Área de entrada de mensaje -->
           <div class="chat-input p-3" style="background-color: #f1ede6 !important;">
-            <div class="input-group">
+            <div class="input-group" style="align-items: center;">
               <button style="padding: 0px !important; border-color: #f1ede6 !important; background-color: #f1ede6 !important;" class="btn btn-light" @click="openFileExplorer">
                 <i class="bi bi-plus-lg" style="color: grey; font-size: 1.5rem;"></i>
               </button>
-              <form @submit.prevent="guardarMensaje('texto')" autocomplete="off" :style="esDispositivoMovil ? 'flex-grow: 0; width: 72%; margin-right: 10px;' : 'flex-grow: 1;'">
-                <input
+              <form @submit.prevent="guardarMensaje('texto')" 
+                @keydown.enter.exact.prevent="guardarMensaje('texto')"
+                autocomplete="off" 
+                :style="esDispositivoMovil ? 'flex-grow: 0; width: 72%; margin-right: 10px;' : 'flex-grow: 1; width: 93%;'">
+                <div contenteditable="true" @input="updateText" ref="editableDiv" class="editable"></div>
+                <!-- <input
                   style="border: 1px solid #c3c3c3; width: 98%;"
                   type="text" 
                   class="form-control mx-2" 
                   placeholder="Escribe un mensaje..."
                   v-model="newMessage"
-                >
+                > -->
               </form>
               <button 
                 class="btn btn-primary rounded-circle"
@@ -564,7 +569,8 @@ export default {
       baseUrl: baseUrl,
       isLoading: false,
       esDispositivoMovil: false,
-      erroresArchivo: []
+      erroresArchivo: [],
+      altura_editable: 78
     }
   },
   methods: {
@@ -759,12 +765,16 @@ export default {
     async guardarMensaje(tipo) {
       const id_mio = localStorage.getItem('id_mio');
       const id_chat = localStorage.getItem('id_chat');
-      const mensaje = this.newMessage;
+     
+      const vacio = this.$refs.editableDiv.textContent.trim();
       
-      if(mensaje.trim() != ''){
+      if(vacio != ''){ 
+        const mensaje = this.newMessage;
         let response = await chatService.guardarMensaje(id_mio, id_chat, mensaje, tipo, null); 
         if (response.success) {
           this.newMessage = '';
+          this.$refs.editableDiv.innerHTML = '';
+          this.altura_editable = 78;
           await this.loadMessages();
           await this.loadChats();
           this.scrollToBottom();
@@ -914,6 +924,10 @@ export default {
         this.$refs.chatContainer.style.display = 'none'; 
         this.$refs.listaContactosContainer.style.display = 'block';
       }
+    },
+    updateText(event) {
+      this.altura_editable = this.$refs.editableDiv.offsetHeight + 32;
+      this.newMessage = event.target.innerHTML;
     }
   },
   watch: {
@@ -987,15 +1001,39 @@ export default {
 
 .message-mine {
   margin-right: 1.5%;
-  border-radius: 15px 0px 15px 15px !important;
-  background: linear-gradient(135deg, #007bff, #0056b3);
+    border-radius: 15px 0px 15px 15px !important;
+    background: linear-gradient(to right, #007bff, #0061ca);
+}
+
+.message-mine .texto_en_html ::v-deep(p){
+  margin-bottom: 0px !important;
+  color: white !important;
+  font-size: 14px !important;
+  text-align: left !important;
+  text-indent: 0pt !important;
+}
+
+.message-mine .texto_en_html ::v-deep(span){
+  color: white !important;
 }
 
 .message-other {
   margin-left: 1.5%;
   border-radius: 0px 15px 15px 15px !important;
   background-color: rgb(170, 198, 252);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(63, 63, 63, 0.1);
+}
+
+.message-other .texto_en_html ::v-deep(p){
+  margin-bottom: 0px !important;
+  color: rgb(54, 54, 54) !important;
+  font-size: 14px !important;
+  text-align: left !important;
+  text-indent: 0pt !important;
+}
+
+.message-other .texto_en_html ::v-deep(span){
+  color: rgb(54, 54, 54) !important;
 }
 
 /* Estilizar scrollbar */
@@ -1081,5 +1119,25 @@ export default {
   width: 100%; 
   display: block; 
   text-align: left;
+}
+
+.editable {
+  border: 1px solid #ccc;
+  padding-left: 18px;
+  padding-right: 18px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  min-height: 35px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.editable ::v-deep(p) {
+  text-indent: 0pt !important;
+  margin-bottom: 0px !important;
 }
 </style> 

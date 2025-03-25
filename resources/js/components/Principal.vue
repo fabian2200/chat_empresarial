@@ -86,6 +86,7 @@ export default {
             updateInterval: null,
             baseUrl: baseUrl,
             permisoConcedido: false,
+            primera_vez: true,
         }
     },
     async mounted() {
@@ -135,32 +136,41 @@ export default {
             const response = await userService.obtenerNumeroMensajesRecibidos(this.usuario.id);
             if(response.status === 'success') {
                 var m_r = response.numero_mensajes_recibidos_chat;
-                this.notificarMensajesChat(m_r);
-
                 var m_r_grupo = response.numero_mensajes_recibidos_grupo;
-                this.notificarMensajesGrupo(m_r_grupo);
+
+                if(this.primera_vez) {
+                    this.primera_vez = false;
+                    this.numero_mensajes_recibidos_chat = m_r;
+                    this.numero_mensajes_recibidos_grupo = m_r_grupo;
+
+                    console.log("Mensajes iniciales chat: "+ this.numero_mensajes_recibidos_chat);
+                    console.log("Mensajes iniciales grupo: "+ this.numero_mensajes_recibidos_grupo);
+                }else{
+                    this.notificarMensajesChat(m_r);
+                    this.notificarMensajesGrupo(m_r_grupo);
+                }
             }
         },
         notificarMensajesChat(m_r) {
             if(this.numero_mensajes_recibidos_chat != m_r) {
                 this.numero_mensajes_recibidos_chat = m_r;
-                console.log("nuevo mensaje, ahora con: "+ this.numero_mensajes_recibidos_chat);
+                console.log("Nuevo mensaje en chat: "+ this.numero_mensajes_recibidos_chat);
                 var audio = new Audio(this.baseUrl+'sounds/sound.mp3');
                 audio.play();
                 this.enviarNotificacion("Tienes un nuevo mensaje 📩");
             }else{
-                console.log("sigue siendo el mismo: "+ this.numero_mensajes_recibidos_chat);
+                console.log("Mismos mensajes en chat: "+ this.numero_mensajes_recibidos_chat);
             }
         },
         notificarMensajesGrupo(m_r) {
             if(this.numero_mensajes_recibidos_grupo != m_r) {
                 this.numero_mensajes_recibidos_grupo = m_r;
-                console.log("nuevo mensaje grupo, ahora con: "+ this.numero_mensajes_recibidos_grupo);
+                console.log("Nuevo mensaje en grupo: "+ this.numero_mensajes_recibidos_grupo);
                 var audio = new Audio(this.baseUrl+'sounds/sound_2.mp3');
                 audio.play();
                 this.enviarNotificacion("Tienes un nuevo mensaje en un grupo 📫");
             }else{
-                console.log("sigue siendo el mismo grupo: "+ this.numero_mensajes_recibidos_grupo);
+                console.log("Mismos mensajes en grupo: "+ this.numero_mensajes_recibidos_grupo);
             }
         },
         verificarLogin() {
