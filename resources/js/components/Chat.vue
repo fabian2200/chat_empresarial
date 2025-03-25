@@ -459,12 +459,14 @@
 
             <!-- Área de mensaje -->
             <div class="mb-3">
-              <textarea 
-                class="form-control" 
-                v-model="broadcastMessage" 
-                rows="3" 
-                placeholder="Escribe tu mensaje..."
-              ></textarea>
+              <label for="broadcastMessage" class="form-label">Mensaje</label>
+              <div 
+                class="editable" 
+                contenteditable="true" 
+                @input="updateBroadcastMessage" 
+                ref="editableDivBroadcast"
+                style="border: 1px solid #c3c3c3; width: 100%; height: 100px !important; margin: 0px !important;"
+              ></div>
             </div>
 
             <!-- Área de archivo -->
@@ -846,6 +848,7 @@ export default {
       if (this.broadcastModal) {
         this.broadcastModal.hide();
         this.broadcastMessage = '';
+        this.$refs.editableDivBroadcast.innerHTML = '';
         this.selectedUsers = [];
         this.broadcastFile = null;
       }
@@ -864,29 +867,40 @@ export default {
       this.availableUsersDifusion = this.users.filter(user => user.name.toLowerCase().includes(this.broadcastSearchQuery.toLowerCase()));
     },
     async sendBroadcastMessage() {
-      try {
-        
-        const response = await chatService.enviarMensajeDifusion(this.yo.id, this.selectedUsers.join(','), this.broadcastMessage, this.broadcastFile);
+      this.isLoading = true;
+      const mensaje = this.$refs.editableDivBroadcast.textContent.trim();
 
-        if (response.success) {
-          Swal.fire({
-            icon: 'success',
-            title: '¡Éxito!',
-            text: 'Mensaje de difusión enviado correctamente'
-          });
-          this.closeBroadcastModal();
-
-          this.loadChats();
-        } else {
-          throw new Error(response.message);
-        }
-      } catch (error) {
+      if(mensaje == ''){
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: 'No se pudo enviar el mensaje de difusión'
+          title: 'Oops...',
+          text: 'No se puede enviar un mensaje vacío',
         });
-      }
+      } else {
+        try {
+          const response = await chatService.enviarMensajeDifusion(this.yo.id, this.selectedUsers.join(','), this.broadcastMessage, this.broadcastFile);
+          if (response.success) {
+            this.isLoading = false;
+            Swal.fire({
+              icon: 'success',
+              title: '¡Éxito!',
+              text: 'Mensaje de difusión enviado correctamente'
+            });
+            this.closeBroadcastModal();
+            this.loadChats();
+          } else {
+            this.isLoading = false;
+            throw new Error(response.message);
+          }
+        } catch (error) {
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo enviar el mensaje de difusión'
+            });
+          }
+        }
     },
     buscarContactosChats() {
       console.log(this.chats);
@@ -928,6 +942,9 @@ export default {
     updateText(event) {
       this.altura_editable = this.$refs.editableDiv.offsetHeight + 32;
       this.newMessage = event.target.innerHTML;
+    },
+    updateBroadcastMessage(event) {
+      this.broadcastMessage = event.target.innerHTML;
     }
   },
   watch: {

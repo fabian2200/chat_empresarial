@@ -277,9 +277,10 @@ class ChatController extends Controller
             $mensaje = $request->mensaje;
             $id_crea = $request->id_crea;
             $archivo = $request->archivo;
-
+            $pesoArchivo = 0;
             // Si hay archivo, guardarlo una sola vez
             if (isset($archivo)) {
+                $pesoArchivo = $this->convertirTamaño($archivo->getSize());
                 $nombreArchivo = time() . '_' . $archivo->getClientOriginalName();
                 
                 if (!file_exists(public_path('archivos'))) {
@@ -288,6 +289,7 @@ class ChatController extends Controller
                 
                 // Guardar el archivo una sola vez
                 $archivo->move(public_path('archivos'), $nombreArchivo);
+                
             }
 
             $ids_chats = [];
@@ -307,7 +309,8 @@ class ChatController extends Controller
                         'tiene_archivo' => 1,
                         'fecha' => Carbon::now('America/Bogota')->format('Y-m-d'),
                         'hora' => Carbon::now('America/Bogota')->format('g:i:s A'),
-                        'tipo_archivo' => $archivo->getClientOriginalExtension()
+                        'tipo_archivo' => $archivo->getClientOriginalExtension(),
+                        'peso' => $pesoArchivo
                     ]);
                 }
             }

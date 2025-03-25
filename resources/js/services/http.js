@@ -3,7 +3,7 @@ import { baseUrl } from '../baseUrl';
 
 export function http() {
     return axios.create({
-        //baseURL: 'https://ingeer.co'+baseUrl+'api/'
-        baseURL: 'https://192.168.1.17'+baseUrl+'api/'
+        baseURL: 'https://ingeer.co'+baseUrl+'api/'
+        //baseURL: 'https://192.168.1.17'+baseUrl+'api/'
     });
 }
