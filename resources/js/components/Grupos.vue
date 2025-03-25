@@ -67,9 +67,9 @@
                                 </small>
                                 <div v-if="group.ultimo_mensaje != null" class="ultimo_mensaje_grupo">
                                     <p class="mb-0" style="font-size: 10px;">
-                                        <span style="font-weight: bold;">{{ group.ultimo_mensaje.nombre_usuario }}: </span> <p v-html="group.ultimo_mensaje.mensaje" class="mb-1 texto_en_html"></p>   
+                                        <span style="font-weight: bold; color: #000 !important;">{{ group.ultimo_mensaje.nombre_usuario }}: </span> <p v-html="group.ultimo_mensaje.mensaje" class="mb-1 texto_en_html"></p>   
                                     </p>
-                                    <p style="width: 100%; text-align: right; font-size: 8px; margin: 0px; margin-top: 3px; margin-bottom: 3px; font-weight: bold;">
+                                    <p style="width: 100%; text-align: right; font-size: 9px !important; margin: 0px; margin-top: 3px; margin-bottom: 3px; font-weight: bold;">
                                         {{ group.ultimo_mensaje.fecha }} A las {{ group.ultimo_mensaje.hora }}
                                     </p>
                                 </div>
@@ -1062,6 +1062,11 @@ export default {
     -webkit-line-clamp: 2;            /* Limita el contenido a 2 líneas */
     -webkit-box-orient: vertical;     /* Define la orientación vertical */
     line-height: 1.5em;   
+}
+
+.ultimo_mensaje_grupo ::v-deep(p), .ultimo_mensaje_grupo ::v-deep(span), .ultimo_mensaje_grupo ::v-deep(strong){
+  font-size: 12px !important;
+  color: #6c757d !important;
 }
 
 .editable {
