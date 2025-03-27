@@ -116,6 +116,14 @@
                         ref="messageContainer"
                     >
                         <div 
+                            ref="dropGrupos"
+                            v-if="isDragging" class="drag-overlay"
+                            @dragover.prevent="handleDragOver"
+                            @drop="handleDrop"
+                        >
+                            Suelta los archivos aquí del grupo 📂
+                        </div>
+                        <div 
                             v-for="message in messages" 
                             :key="message.id"
                             class="mb-3 d-flex align-items-start"
@@ -436,6 +444,30 @@
             </div>
         </div>
     </div>
+
+
+     <!-- Modal Bootstrap para archivos arrastrados-->
+     <div class="modal fade" id="fileModalCopy" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="fileModalLabel">Archivos Cargados</h5>
+          </div>
+          <div class="modal-body">
+            <ul class="list-group">
+              <li v-for="(file, index) in files" :key="index" class="list-group-item d-flex justify-content-between align-items-center">
+                {{ file.name }} ({{ formatSize(file.size) }})
+                <button class="btn btn-light btn-sm" @click="removeFile(index)">❌</button>
+              </li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" @click="files = []" data-bs-dismiss="modal">Cancelar <i class="bi bi-x"></i></button>
+            <button type="button" class="btn btn-success" @click="sendFiles">Enviar <i class="bi bi-send"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
 </template>
 <script>
 import { userService, grupoService } from '../services/api' 
@@ -477,7 +509,9 @@ export default {
             isLoading: false,
             esDispositivoMovil: false,
             erroresArchivo: [],
-            altura_editable: 78
+            altura_editable: 78,
+            isDragging: false,
+            files: [],
         }
     },
     async mounted() {
@@ -494,6 +528,24 @@ export default {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         }
+
+        window.addEventListener("dragenter", this.handleWindowDragEnter);
+        window.addEventListener("dragleave", this.handleWindowDragLeave);
+        window.addEventListener("dragover", (event) => event.preventDefault());
+        window.addEventListener("drop", (event) => {
+        this.isDragging = false;
+        event.preventDefault(); // Previene la apertura del archivo en otra pestaña
+        });
+    },
+    beforeUnmount() {
+        this.stopAutoUpdate();
+        window.removeEventListener("dragenter", this.handleWindowDragEnter);
+        window.removeEventListener("dragleave", this.handleWindowDragLeave);
+        window.removeEventListener("dragover", (event) => event.preventDefault());
+        window.removeEventListener("drop", (event) => {
+            this.isDragging = false;
+            event.preventDefault(); // Previene la apertura del archivo en otra pestaña
+        });
     },
     methods: {
         verificarLogin() {
@@ -841,10 +893,81 @@ export default {
         updateText(event) {
             this.altura_editable = this.$refs.editableDiv.offsetHeight + 32;
             this.newMessage = event.target.innerHTML;
+        },
+        handleWindowDragEnter(event) {
+        if (event.dataTransfer.types.includes("Files")) {
+            this.isDragging = true;
         }
-    },
-    beforeUnmount() {
-        this.stopAutoUpdate();
+        },
+        handleWindowDragLeave(event) {
+        if (event.clientY <= 0 || event.clientX <= 0 || event.clientX >= window.innerWidth || event.clientY >= window.innerHeight) {
+            this.isDragging = false;
+        }
+        },
+        handleDragOver(event) {
+        event.preventDefault();
+        },
+        handleDrop(event) {
+            event.preventDefault();
+            this.isDragging = false;
+
+            if (!this.$refs.dropGrupos || !this.$refs.dropGrupos.contains(event.target)) {
+                alert('No se puede enviar archivos fuera del chat');
+                return;
+            }
+
+            const droppedFiles = Array.from(event.dataTransfer.files);
+            this.files = [...this.files, ...droppedFiles];
+
+            const modal = new bootstrap.Modal(document.getElementById('fileModalCopy'));
+            modal.show();
+        },
+        removeFile(index) {
+        this.files.splice(index, 1);
+        },
+        formatSize(size) {
+        return (size / 1024).toFixed(2) + " KB";
+        },
+        async sendFiles() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('fileModalCopy'));
+            modal.hide();
+            const files = this.files;
+            if (files.length > 0) {
+                this.isLoading = true;
+                const maxFileSize = 100 * 1024 * 1024;
+                for(var i = 0; i < files.length; i++){
+                if (files[i].size > maxFileSize) {
+                    this.erroresArchivo.push('<li style="color: red;">'+ files[i].name+' es demasiado grande, el tamaño máximo es de 100 MB</li>');
+                }else{
+                    this.archivo = files[i];
+                    await this.guardarMensajeArchivo('archivo', this.archivo);
+                }
+                }
+
+                var mensaje_swal = '<ul>';
+                for(var i = 0; i < this.erroresArchivo.length; i++){
+                mensaje_swal += this.erroresArchivo[i];
+                }
+                mensaje_swal += '</ul>';
+
+                Swal.fire({
+                icon: 'warning',
+                title: 'Atención',
+                html: mensaje_swal,
+                showConfirmButton: true, 
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#3085d6',
+                });
+
+                this.isLoading = false;
+                this.erroresArchivo = [];
+                this.files = [];
+                await this.loadMessages();
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
+            }
+        }
     }
 }
 </script>
@@ -1087,5 +1210,25 @@ export default {
 .editable ::v-deep(p) {
   text-indent: 0pt !important;
   margin-bottom: 0px !important;
+}
+
+.drag-overlay {
+  position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(255 255 255 / 88%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    color: #333;
+    font-weight: bold;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    z-index: 1000;
+    border: 3px dashed #0d6efd;
 }
 </style>
