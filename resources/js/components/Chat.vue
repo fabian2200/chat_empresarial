@@ -1159,6 +1159,10 @@ export default {
   color: white !important;
 }
 
+.message-mine .texto_en_html ::v-deep(strong){
+  color: white !important;
+}
+
 .message-other {
   margin-left: 1.5%;
   border-radius: 0px 15px 15px 15px !important;
@@ -1175,6 +1179,10 @@ export default {
 }
 
 .message-other .texto_en_html ::v-deep(span){
+  color: rgb(54, 54, 54) !important;
+}
+
+.message-other .texto_en_html ::v-deep(strong){
   color: rgb(54, 54, 54) !important;
 }
 

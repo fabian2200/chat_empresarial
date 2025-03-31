@@ -179,9 +179,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div v-else>
-                                    <p :class="message.is_mine ? 'text-white' : 'text-dark'">{{ message.mensaje }}</p>
-                                </div>
+                                
+                                <p v-else :class="message.is_mine ? 'text-white texto_en_html' : 'text-dark texto_en_html'" v-html="message.mensaje"></p>
+                                
 
                                 <small :class="message.is_mine ? 'text-white-50' : 'text-muted'" style="font-size: 10px;">
                                 {{ message.fecha }} A las {{ message.hora }}
@@ -1087,6 +1087,11 @@ export default {
   color: white !important;
 }
 
+.message-mine .texto_en_html ::v-deep(strong){
+  color: white !important;
+}
+
+
 .message-other {
     border-radius: 0px 15px 15px 15px !important;
     background-color: rgb(170, 198, 252);
@@ -1102,6 +1107,10 @@ export default {
 }
 
 .message-other .texto_en_html ::v-deep(span){
+  color: rgb(54, 54, 54) !important;
+}
+
+.message-other .texto_en_html ::v-deep(strong){
   color: rgb(54, 54, 54) !important;
 }
 
