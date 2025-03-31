@@ -121,7 +121,7 @@
                             @dragover.prevent="handleDragOver"
                             @drop="handleDrop"
                         >
-                            Suelta los archivos aquí del grupo 📂
+                            Suelta los archivos que enviara al grupo aquí 📂
                         </div>
                         <div 
                             v-for="message in messages" 
@@ -136,6 +136,8 @@
                                 style="background-color: white; padding: 3px;margin-left: 10px ;width: 40px; height: 40px; object-fit: cover; margin-top: 15px;"
                             >
                             <div 
+                                @dblclick="handleDoubleClick(message)"
+                                :id="'mensaje_numero_'+message.id"
                                 class="message d-inline-block p-2"
                                 :class="[
                                 message.is_mine ? 'message-mine bg-primary text-white p-3' : 'message-other bg-white p-3',
@@ -150,11 +152,16 @@
                                 <div v-else style="position: absolute; left: -25px; top: 0px; z-index: 99;">
                                     <img :src="baseUrl+'images/other.png'" style="width: 30px; height: 50px;">
                                 </div>
+
                                 <small :style="message.is_mine ? 'color: white; font-size: 10px;' : 'color: grey; font-size: 10px;'">
                                    {{ message.usuario }}
                                 </small>
-                                <p v-html="message.mensaje" :style="message.is_mine ? 'color: white;' : 'color: black;'" class="mb-1 texto_en_html"></p>
-                                
+
+                                <div @click="scrollToDiv(message.id_mensaje_responde)" v-if="message.id_mensaje_responde != 0" :class="message.is_mine ? 'mensaje-respondiendo' : 'mensaje-respondiendo-other'">
+                                    <p :style="message.is_mine ? 'color: white; font-size: 13px; font-style: italic;' : 'color: black; font-size: 13px; font-style: italic;'" class="mb-1 texto_en_html">En respuesta a:</p>
+                                    <p :style="message.is_mine ? 'color: white; font-size: 13px;' : 'color: black; font-size: 13px;'" class="mb-1 texto_en_html" v-html="message.mensaje_responde"></p>
+                                </div>
+
                                 <!-- Modificar vista previa del archivo -->
                                 <div v-if="message.tiene_archivo === 1" class="file-preview mb-2">
                                     <div 
@@ -164,13 +171,17 @@
                                     >
                                         <i class="bi bi-file-earmark me-2" style="font-size: 1.5rem;"></i>
                                         <div class="file-info">
-                                        <div :class="message.is_mine ? 'text-white' : 'text-dark'">{{ message.archivo }}</div>
+                                        <div :class="message.is_mine ? 'text-white' : 'text-dark'">
+                                            {{ message.mensaje }}
+                                            <small :class="message.is_mine ? 'text-white-50' : 'text-muted'"> - {{ message.peso }} <br></small>
+                                        </div>
                                         <small :class="message.is_mine ? 'text-white-50' : 'text-muted'">Clic para ver</small>
                                         </div>
                                     </div>
                                 </div>
-
-                                <small v-if="message.tiene_archivo === 1" :class="message.is_mine ? 'text-white-50 peso_derecha' : 'text-muted peso_izquierda'">Peso: {{ message.peso }} <br></small>
+                                <div v-else>
+                                    <p :class="message.is_mine ? 'text-white' : 'text-dark'">{{ message.mensaje }}</p>
+                                </div>
 
                                 <small :class="message.is_mine ? 'text-white-50' : 'text-muted'" style="font-size: 10px;">
                                 {{ message.fecha }} A las {{ message.hora }}
@@ -180,6 +191,13 @@
                                 </span>
                                 </small>
                             </div>
+                        </div>
+                        <div class="respondiendo" style="position: sticky;bottom: 0px;z-index: 44444;" v-if="estado_respondiendo ==  1">
+                            <button class="btn btn-light rounded-circle" style="position: absolute; right: 10px; top: 10px;" @click="estado_respondiendo = 0; message_respondiendo = null;">
+                                <i style="color: #5437fd !important;" class="bi bi-x-lg"></i>
+                            </button>
+                            <p>Respondiendo el mensaje de <span style="font-weight: bold;">{{ message_respondiendo.usuario }}</span></p>
+                            <p class="mensaje_respondiendo" v-html="message_respondiendo.mensaje"></p>
                         </div>
                     </div>
                     <!-- Área de entrada de mensaje -->
@@ -512,6 +530,8 @@ export default {
             altura_editable: 78,
             isDragging: false,
             files: [],
+            estado_respondiendo: 0,
+            message_respondiendo: null,
         }
     },
     async mounted() {
@@ -674,6 +694,8 @@ export default {
                 this.isLoading = false;
                 this.erroresArchivo = [];
                 this.$refs.fileInputII.value = '';
+                this.estado_respondiendo = 0;
+                this.message_respondiendo = null;
                 await this.loadMessages();
                 this.$nextTick(() => {
                     this.scrollToBottom();
@@ -686,11 +708,20 @@ export default {
             const mensaje = this.newMessage;
             
             try {
+                if(this.estado_respondiendo == 0){
                 let response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, this.archivo);
-                if (!response.success) {
-                    this.erroresArchivo.push('<li style="color: red;">'+response.message+'</li>');
+                    if (!response.success) {
+                        this.erroresArchivo.push('<li style="color: red;">'+response.message+'</li>');
+                    }else{
+                        this.erroresArchivo.push('<li style="color: green;">'+archivo.name+' subido correctamente</li>');
+                    }
                 }else{
-                    this.erroresArchivo.push('<li style="color: green;">'+archivo.name+' subido correctamente</li>');
+                    let response = await grupoService.guardarMensajeRespondiendo(id_mio, id_grupo, mensaje, tipo, this.archivo, this.message_respondiendo.usuario, this.message_respondiendo.mensaje, this.message_respondiendo.id);
+                    if (!response.success) {
+                        this.erroresArchivo.push('<li style="color: red;">'+response.message+'</li>');
+                    }else{
+                        this.erroresArchivo.push('<li style="color: green;">'+archivo.name+' subido correctamente</li>');
+                    }
                 }
             } catch (error) {
                 this.erroresArchivo.push(error.response.statusText == 'Content Too Large' ? '<li style="color: red;">El archivo '+this.archivo.name+' es demasiado grande</li>' : '<li style="color: red;">'+error.response.statusText+'</li>');
@@ -701,22 +732,44 @@ export default {
             const id_grupo = localStorage.getItem('id_grupo');
             const vacio = this.$refs.editableDiv.textContent.trim();
             if(vacio != ''){
-                const mensaje = this.newMessage;
-                let response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, null);
-                if (response.success) {
-                    this.newMessage = '';
-                    this.$refs.editableDiv.innerHTML = '';
-                    this.altura_editable = 78;
-                    await this.loadMessages();
-                    this.$nextTick(() => {
-                        this.scrollToBottom();
-                    });
-                } else {
-                    Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: response.message
-                    });
+                var mensaje = this.newMessage;
+
+                if(this.estado_respondiendo == 0){
+                    let response = await grupoService.guardarMensaje(id_mio, id_grupo, mensaje, tipo, null);
+                    if (response.success) {
+                        this.newMessage = '';
+                        this.$refs.editableDiv.innerHTML = '';
+                        this.altura_editable = 78;
+                        await this.loadMessages();
+                        this.$nextTick(() => {
+                            this.scrollToBottom();
+                        });
+                    } else {
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: response.message
+                        });
+                    }
+                }else{
+                    let response = await grupoService.guardarMensajeRespondiendo(id_mio, id_grupo, mensaje, tipo, null, this.message_respondiendo.usuario, this.message_respondiendo.mensaje, this.message_respondiendo.id);
+                    if (response.success) {
+                        this.newMessage = '';
+                        this.$refs.editableDiv.innerHTML = '';
+                        this.altura_editable = 78;
+                        this.estado_respondiendo = 0;
+                        this.message_respondiendo = null;
+                        await this.loadMessages();
+                        this.$nextTick(() => {
+                            this.scrollToBottom();
+                        });
+                    }else{
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: response.message
+                        });
+                    }
                 }
             }else{
                 Swal.fire({
@@ -967,6 +1020,20 @@ export default {
                     this.scrollToBottom();
                 });
             }
+        },
+        handleDoubleClick(message) {
+            this.estado_respondiendo = 1;
+            this.message_respondiendo = message;
+        },
+        async scrollToDiv(id_mensaje) {
+            await this.$nextTick(); // Asegurar que el DOM está actualizado
+            const element = document.getElementById(`mensaje_numero_${id_mensaje}`);
+            console.log(element);
+            if (element) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+            } else {
+                console.warn("No se encontró el mensaje con ID:", id);
+            }
         }
     }
 }
@@ -1155,18 +1222,6 @@ export default {
   border: 1px solid #333 !important;
 }
 
-.peso_derecha {
-  width: 100%; 
-  display: block; 
-  text-align: right;
-}
-
-.peso_izquierda {
-  width: 100%; 
-  display: block; 
-  text-align: left;
-}
-
 .ultimo_mensaje_grupo {
     border-radius: 10px;
     background-color: #fefeff;
@@ -1231,4 +1286,59 @@ export default {
     z-index: 1000;
     border: 3px dashed #0d6efd;
 }
+
+.respondiendo{
+    margin: 10px;
+    border-radius: 10px;
+    border-left: 4px solid #674cff;
+    padding: 15px;
+    background-color: #ecdcff;
+    width: 98%;
+    overflow-x: hidden;
+    color: #5437fd !important;
+    box-shadow: 0 0 10px 0 #f9ecff;
+    cursor: pointer;
+}
+
+.mensaje_respondiendo{
+    width: 100%;    
+    padding: 10px;        
+    border: 1px solid #aa87fd;
+    border-radius: 10px;
+}
+
+.mensaje-respondiendo {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border-left: 4px solid #674cff;
+    padding: 15px;
+    background-color: #26074960;
+    overflow-x: hidden;
+    color: #5437fd !important;
+    cursor: pointer;
+    transition: all 0.2s ease;  
+}
+
+.mensaje-respondiendo:hover{
+    transform: scale(1.06);
+}
+
+.mensaje-respondiendo-other {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border-left: 4px solid #b5a8ff;
+    padding: 15px;
+    background-color: #d3acff60;
+    overflow-x: hidden;
+    color: #5437fd !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mensaje-respondiendo-other:hover{
+    transform: scale(1.06);
+}
+
 </style>

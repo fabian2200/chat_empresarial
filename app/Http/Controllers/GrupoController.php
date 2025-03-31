@@ -279,5 +279,64 @@ class GrupoController extends Controller
             ]);
         }
     }
+
+    public function guardarMensajeRespondiendo(Request $request){
+        $id = $request->id;
+        $grupo_id = $request->grupo_id;
+        $mensaje = $request->mensaje;
+        $tipo = $request->tipo;
+        
+        $usuario_respondiendo = $request->usuario_respondiendo;
+        $mensaje_respondiendo = $request->mensaje_respondiendo;
+        $id_mensaje_respondiendo = $request->id_mensaje_respondiendo;
+
+        $mensaje_respondiendo_texto = '<strong>' . $usuario_respondiendo . '</strong> <br> <div class="mensaje-respondiendo-user">' . $mensaje_respondiendo . '</div>';
+
+        if($tipo == 'archivo'){
+            try {
+                $peso_archivo = $this->convertirTamaño($request->archivo->getSize());
+                $archivo = $request->archivo;
+                $nombre_archivo = time() . '_' . $archivo->getClientOriginalName();
+                $ruta_archivo = $archivo->move(public_path('archivos'), $nombre_archivo);
+                $mensaje = $nombre_archivo;
+                $tipo_archivo = $archivo->getClientOriginalExtension();
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al guardar el archivo: ' . $e->getMessage()
+                ], 200);
+            }
+        }
+        
+        $fecha = Carbon::now()->setTimezone('America/Bogota')->format('Y-m-d');
+        $hora = Carbon::now()->setTimezone('America/Bogota')->format('g:i:s A');
+
+        $mensaje = DB::table('mensajes_grupo')->insertGetId([
+            'id_crea' => $id,
+            'id_grupo' => $grupo_id,
+            'mensaje' => $mensaje,
+            'tiene_archivo' => $tipo == 'archivo' ? 1 : 0,
+            'tipo_archivo' =>  $tipo == 'archivo' ? $tipo_archivo : "no",
+            'fecha' => $fecha,
+            'hora' => $hora,
+            'peso' => $tipo == 'archivo' ? $peso_archivo : 0,
+            'id_mensaje_responde' => $id_mensaje_respondiendo,
+            'mensaje_responde' => $mensaje_respondiendo_texto
+        ]);
+
+        if($mensaje){
+            return response()->json([
+                'success' => true,
+                'message' => 'Mensaje guardado correctamente'
+            ]);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al guardar mensaje'
+            ]);
+        }
+        
+        
+    }
 }
 

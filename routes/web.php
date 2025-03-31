@@ -23,6 +23,7 @@ Route::prefix('api')->group(function () {
     Route::post('/reactivar-participante', [GrupoController::class, 'reactivarParticipante']);
     Route::post('/agregar-participantes', [GrupoController::class, 'agregarParticipantes']);
     Route::post('/editar-grupo', [GrupoController::class, 'editarGrupo']);
+    Route::post('/guardar-mensaje-respondiendo', [GrupoController::class, 'guardarMensajeRespondiendo']);
 
     Route::post('/actualizar-perfil', [UserController::class, 'actualizarPerfil']);
     Route::get('/mis-datos', [UserController::class, 'misDatos']);
