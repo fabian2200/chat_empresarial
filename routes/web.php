@@ -34,7 +34,6 @@ Route::prefix('api')->group(function () {
     // Rutas de la API de chats
     Route::get('/chats-mios', [ChatController::class, 'obtenerChatsUsuario']);
     Route::post('/crear-chat', [ChatController::class, 'crearChat']);
-
     Route::get('/cargar-csv', [ChatController::class, 'cargarcsv']);
 });
 
