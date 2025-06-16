@@ -11,6 +11,8 @@ Route::prefix('api')->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [UserController::class, 'login']);
     Route::get('/logout', [UserController::class, 'logout']);
+    Route::get('/mi-usuario', [UserController::class, 'obtenerMiUsuario']);
+    
     Route::get('/mensajes-chat', [ChatController::class, 'obtenerMensajesChat']);
     Route::post('/guardar-mensaje', [ChatController::class, 'guardarMensaje']);
     Route::post('/enviar-mensaje-difusion', [ChatController::class, 'enviarMensajeDifusion']);

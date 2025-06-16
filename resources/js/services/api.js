@@ -50,6 +50,11 @@ export const userService = {
     obtenerNumeroMensajesRecibidos: async (id) => {
         const response = await http().get('/numero-mensajes-recibidos?id=' + id);
         return response.data;
+    },
+
+    obtenerMiUsuario: async (id) => {
+        const response = await http().get('/mi-usuario?id=' + id);
+        return response.data;
     }
 }; 
 
@@ -106,7 +111,7 @@ export const chatService = {
 
        const response = await http().post('/enviar-mensaje-difusion', formData, { headers });
        return response.data;
-    }
+    },
 }; 
 
 export const grupoService = {

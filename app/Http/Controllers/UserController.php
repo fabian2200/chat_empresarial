@@ -424,4 +424,11 @@ class UserController extends Controller
             'numero_mensajes_recibidos_grupo' => $numero_mensajes_recibidos_grupo
         ], 200);
     }
+
+    public function obtenerMiUsuario(Request $request)
+    {
+        $id = $request->id;
+        $user = DB::table('users')->where('id', $id)->first();
+        return response()->json($user);
+    }
 } 
