@@ -33,11 +33,6 @@
               </div>         
             </div>
           </div>
-          <div class="p-3">
-            <button style="width: 100%;" data-bs-toggle="tooltip"  class="btn btn-outline-danger" @click="cerrarpagina">
-              <i class="fa fa-arrow-left"></i> Volver 
-            </button>
-          </div>
         </div>
   
         <!-- Área del chat -->
@@ -351,10 +346,11 @@
               showConfirmButton: true, 
               confirmButtonText: 'Crear chat',
               confirmButtonColor: '#3085d6',
-              showCancelButton: true,
+              showCancelButton: false,
               cancelButtonText: 'Cancelar',
               cancelButtonColor: '#d33',
               allowOutsideClick: false,
+              showDenyButton: false,
             }).then((result) => {
               if (result.isConfirmed) {
                 this.createNewChat(id_mio, id_amigo);
@@ -404,7 +400,7 @@
           }
         });
       },
-      async createNewChat(id_amigo, id_mio) {
+      async createNewChat(id_mio, id_amigo) {
         const response =  await chatService.crearChat(id_mio, id_amigo);
         if (response.success) {
           await this.loadChats();
